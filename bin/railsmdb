@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+PROJECT_PATH = File.expand_path('..', __dir__)
+GEMSPEC_PATH = File.join(PROJECT_PATH, 'railsmdb.gemspec')
+LIB_PATH = File.join(PROJECT_PATH, 'lib')
+
+$LOAD_PATH.unshift(LIB_PATH) if File.exist?(GEMSPEC_PATH)
+
+require 'railsmdb/cli'
