@@ -29,8 +29,6 @@ Gem::Specification.new do |s|
   if File.exist?('gem-private_key.pem')
     s.signing_key = 'gem-private_key.pem'
     s.cert_chain  = [ 'gem-public_cert.pem' ]
-  else
-    warn "[#{s.name}] Warning: No private key present, creating unsigned gem."
   end
 
   s.files  = %w[ CONTRIBUTING.md CHANGELOG.md LICENSE NOTICE README.md Rakefile ]

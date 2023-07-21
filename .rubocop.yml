@@ -75,6 +75,12 @@ Metrics/MethodLength:
 RSpec/BeforeAfterAll:
   Enabled: false
 
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/EmptyExampleGroup:
+  Enabled: false
+
 RSpec/ImplicitExpect:
   EnforcedStyle: is_expected
 
@@ -82,6 +88,9 @@ RSpec/MultipleExpectations:
   Enabled: false
 
 RSpec/NestedGroups:
+  Enabled: false
+
+Style/Alias:
   Enabled: false
 
 Style/Documentation:
