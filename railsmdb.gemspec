@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
     s.cert_chain  = [ 'gem-public_cert.pem' ]
   end
 
-  s.files  = %w[ CONTRIBUTING.md CHANGELOG.md LICENSE NOTICE README.md Rakefile ]
+  s.files  = %w[ LICENSE README.md Rakefile ]
   s.files += Dir.glob('lib/**/*')
 
   s.add_dependency 'rails', '~> 7.0'
