@@ -42,6 +42,8 @@ RSpec.configure do
   # Begins a new context block for invoking the Railsmdb project's railsmdb
   # script, and yields to the given block.
   def when_running_railsmdb(*args, &block)
+    FileUtils.mkdir_p(RAILSMDB_SANDBOX)
+
     Dir.chdir(RAILSMDB_SANDBOX) do
       command = find_command
       arg_str = build_args_from_list(args)
@@ -233,6 +235,8 @@ RSpec.configure do
   # Opens a context block and declares a `containing_folder` let variable
   # containing the fully-qualified path.
   def within_folder(path, &block)
+    FileUtils.mkdir_p path
+
     Dir.chdir path do
       context "and, under '#{path}'" do
         let(:containing_folder) { File.join(super(), path) }
