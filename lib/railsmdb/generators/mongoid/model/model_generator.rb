@@ -25,6 +25,17 @@ module Mongoid
       end
 
       hook_for :test_framework
+
+      private
+
+      def type_class_for(attribute)
+        case attribute.type
+        when :datetime then 'Time'
+        when :text then 'String'
+        when :boolean then 'Mongoid::Boolean'
+        else attribute.type.to_s.classify
+        end
+      end
     end
   end
 end

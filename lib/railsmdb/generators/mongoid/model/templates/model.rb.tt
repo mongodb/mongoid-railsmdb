@@ -10,7 +10,7 @@ class <%= class_name %><%= " < #{options[:parent].classify}" if options[:parent]
   store_in collection: '<%= options[:collection] %>'
 <% end -%>
 <% attributes.reject(&:reference?).each do |attribute| -%>
-  field :<%= attribute.name %>, type: <%= attribute.type_class %>
+  field :<%= attribute.name %>, type: <%= type_class_for(attribute) %>
 <% end -%>
 <% attributes.select(&:reference?).each do |attribute| -%>
   belongs_to :<%= attribute.name %>

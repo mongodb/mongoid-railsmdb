@@ -37,6 +37,25 @@ describe 'railsmdb generate model' do
         it_emits_file 'test/models/course_test.rb'
         it_emits_file 'test/fixtures/courses.yml'
       end
+
+      when_running_bin_railsmdb 'generate', 'model', 'book', 'title:string', 'started:time', 'good:boolean', 'review:text' do
+        it_succeeds
+
+        it_emits_file 'app/models/book.rb',
+                      containing: [
+                        'field :title, type: String',
+                        'field :started, type: Time',
+                        'field :good, type: Mongoid::Boolean',
+                        'field :review, type: String'
+                      ]
+      end
+
+      when_running_bin_railsmdb 'generate', 'model', 'todo', '--no-timestamps' do
+        it_succeeds
+
+        it_emits_file 'app/models/todo.rb',
+                      without: 'include Mongoid::Timestamps'
+      end
     end
   end
 end

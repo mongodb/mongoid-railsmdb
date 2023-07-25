@@ -49,3 +49,56 @@ $ railsmdb
 # alternatively:
 $ railsmdb -h
 ```
+
+
+### Generating Mongoid models
+
+You can use `railsmdb` to generate stubs for new Mongoid models. From within a project:
+
+```
+$ bin/railsmdb generate model person
+```
+
+This will create a new model at `app/models/person.rb`:
+
+```ruby
+class Person
+  include Mongoid::Document
+  include Mongoid::Timestamp
+end
+```
+
+You can specify the fields of the model as well:
+
+```ruby
+# bin/railsmdb generate model person name:string birth:date
+
+class Person
+  include Mongoid::Document
+  include Mongoid::Timestamp
+  field :name, type: String
+  field :birth, type: Date
+end
+```
+
+You can instruct the generator to make the new model a subclass of another, by passing the `--parent` option:
+
+```ruby
+# bin/railsmdb generate model student --parent=person
+
+class Student < Person
+  include Mongoid::Timestamp
+end
+```
+
+And if you need to store your models in a different collection than can be inferred from the model name, you can specify `--collection`:
+
+```ruby
+# bin/railsmdb generate model course --collection=classes
+
+class Course
+  include Mongoid::Document
+  include Mongoid::Timestamp
+  store_in collection: 'classes'
+end
+```
