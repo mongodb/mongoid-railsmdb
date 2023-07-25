@@ -38,7 +38,8 @@ describe 'railsmdb generate model' do
         it_emits_file 'test/fixtures/courses.yml'
       end
 
-      when_running_bin_railsmdb 'generate', 'model', 'book', 'title:string', 'started:time', 'good:boolean', 'review:text' do
+      when_running_bin_railsmdb 'generate', 'model', 'book', 'title:string',
+                                'started:time', 'good:boolean', 'review:text' do
         it_succeeds
 
         it_emits_file 'app/models/book.rb',
