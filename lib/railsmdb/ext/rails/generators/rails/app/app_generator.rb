@@ -137,10 +137,7 @@ module Rails
       def mongoid_gem_entries
         {
           nil => [
-            mongoid_gem_entry
-          ],
-
-          development: [
+            mongoid_gem_entry,
             railsmdb_gem_entry
           ]
         }
@@ -168,12 +165,12 @@ module Rails
       def railsmdb_gem_entry
         if railsmdb_project_directory.present?
           GemfileEntry.path \
-            'railsmdb',
+            'mongoid-railsmdb',
             railsmdb_project_directory,
             'The development version of railsmdb'
         else
           GemfileEntry.version \
-            'railsmdb',
+            'mongoid-railsmdb',
             Railsmdb::Version::STRING,
             'The Rails CLI tool for MongoDB'
         end
