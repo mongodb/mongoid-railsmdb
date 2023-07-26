@@ -52,8 +52,8 @@ module Mongoid
 
         config = Mongoid.clients[:default]
         unless config
-          warn "There is no default configuration to fall back to.\n" \
-               'Please define a client in config/mongoid.yml.'
+          abort "There is no default configuration to fall back to.\n" \
+                'Please define a client in config/mongoid.yml.'
         end
 
         warn 'Using default configuration instead.'
