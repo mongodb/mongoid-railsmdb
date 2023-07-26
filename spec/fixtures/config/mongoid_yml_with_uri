@@ -1,0 +1,4 @@
+development:
+  clients:
+    default:
+      uri: mongodb://user:password@mongodb.domain.com:27017/test_app_development
