@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'railsmdb/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'railsmdb'
+  s.name        = 'mongoid-railsmdb'
   s.version     = Railsmdb::Version::STRING
   s.authors     = [ 'The MongoDB Ruby Team' ]
   s.email       = 'dbx-ruby@mongodb.com'
@@ -19,11 +19,11 @@ Gem::Specification.new do |s|
   # FIXME: populate the metadata fields
   s.metadata = {
     'rubygems_mfa_required' => 'true',
-    # 'bug_tracker_uri' => 'https://jira.mongodb.org/projects/MONGOID',
-    # 'changelog_uri' => 'https://github.com/mongodb/railsmdb/releases',
+    'bug_tracker_uri' => 'https://jira.mongodb.org/projects/MONGOID',
+    'changelog_uri' => 'https://github.com/mongodb/mongoid-railsmdb/releases',
     # 'documentation_uri' => '',
     # 'homepage_uri' => '',
-    # 'source_code_uri' => 'https://github.com/mongodb/railsmdb'
+    'source_code_uri' => 'https://github.com/mongodb/mongoid-railsmdb'
   }
 
   if File.exist?('gem-private_key.pem')

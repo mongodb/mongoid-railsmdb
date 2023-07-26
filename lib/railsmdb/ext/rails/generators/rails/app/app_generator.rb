@@ -56,6 +56,12 @@ module Rails
       # The following methods override the existing methods on AppGenerator,
       # to replace the default behavior with Mongoid-specific behavior.
 
+      # Overridden to ignore the "skip_active_record" guard. We always want the
+      # db folder, even when active record is being skipped.
+      def create_db_files
+        build(:db)
+      end
+
       # Overridden to save the current directory; this way, we can see
       # if it is being run from the railsmdb project directory, in
       # development, and set up the railsmdb gem dependency appropriately.
@@ -137,10 +143,7 @@ module Rails
       def mongoid_gem_entries
         {
           nil => [
-            mongoid_gem_entry
-          ],
-
-          development: [
+            mongoid_gem_entry,
             railsmdb_gem_entry
           ]
         }
@@ -168,12 +171,12 @@ module Rails
       def railsmdb_gem_entry
         if railsmdb_project_directory.present?
           GemfileEntry.path \
-            'railsmdb',
+            'mongoid-railsmdb',
             railsmdb_project_directory,
             'The development version of railsmdb'
         else
           GemfileEntry.version \
-            'railsmdb',
+            'mongoid-railsmdb',
             Railsmdb::Version::STRING,
             'The Rails CLI tool for MongoDB'
         end
