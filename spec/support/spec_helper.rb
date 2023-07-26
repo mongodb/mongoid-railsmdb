@@ -2,8 +2,11 @@
 
 require 'open3'
 require 'fileutils'
+require 'active_support/core_ext/array/extract_options'
 
 PROJECT_ROOT = File.expand_path('../..', __dir__)
+RAILSMDB_CMD = 'railsmdb'
+RAILSMDB_FULL_PATH = File.join(PROJECT_ROOT, 'bin', RAILSMDB_CMD)
 RAILSMDB_SANDBOX = File.join(PROJECT_ROOT, 'tmp/railsmdb-sandbox')
 MAX_SUMMARY_LENGTH = 50
 
@@ -29,34 +32,45 @@ def build_args_from_list(list)
   list.map { |arg| arg.gsub(/[ !?&]/) { |m| "\\#{m}" } }.join(' ')
 end
 
-# looks for the given command relative to the current directory. If it
-# exists, it is return. Otherwise, the PROJECT_ROOT value is prefixed
-# to the it.
-def find_command(command: 'bin/railsmdb')
-  command = "#{PROJECT_ROOT}/#{command}" unless File.exist?(command)
-  command
-end
-
-# rubocop:disable RSpec/MultipleMemoizedHelpers
+# rubocop:disable Lint/NestedMethodDefinition
 RSpec.configure do
+  # Read fixture data from the given fixture.
+  #
+  # @param [ String | Symbol ] kind The type of the fixture (config, etc.)
+  # @param [ String | Symbol ] name The name of the fixture
+  #
+  # @return [ String ] the contents of the given fixture
+  def fixture_from(kind, name)
+    File.read(File.join(File.expand_path('../fixtures', __dir__), kind.to_s, name.to_s))
+  end
+
+  # Write a file at the given path, relative to the containing folder.
+  #
+  # @param [ String ] relative_path The path, relative to the containing folder
+  # @param [ String ] contents The contents of the file to write.
+  def write_file(relative_path, contents)
+    File.write(File.join(containing_folder, relative_path), contents)
+  end
+
   # Begins a new context block for invoking the Railsmdb project's railsmdb
   # script, and yields to the given block.
   def when_running_railsmdb(*args, &block)
-    FileUtils.mkdir_p(RAILSMDB_SANDBOX)
+    FileUtils.mkdir_p RAILSMDB_SANDBOX
 
     Dir.chdir(RAILSMDB_SANDBOX) do
-      command = find_command
       arg_str = build_args_from_list(args)
 
-      context "when running `#{command.delete_prefix("#{PROJECT_ROOT}/bin/")} #{arg_str}`" do
-        let(:containing_folder) { RAILSMDB_SANDBOX }
-
-        let_railsmdb_decls(command, arg_str, from_path: RAILSMDB_SANDBOX)
+      context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
+        def containing_folder
+          RAILSMDB_SANDBOX
+        end
 
         before :context do
           FileUtils.rm_rf RAILSMDB_SANDBOX
           FileUtils.mkdir_p RAILSMDB_SANDBOX
         end
+
+        let_railsmdb_decls(RAILSMDB_FULL_PATH, arg_str, from_path: RAILSMDB_SANDBOX)
 
         class_exec(&block)
       end
@@ -68,27 +82,26 @@ RSpec.configure do
   # err streams, and the status as a 3-tuple. `railsmdb_out`,
   # `railsmdb_err`, and `railsmdb_status` variables are available for
   # convenience in accessing the elements of that tuple.
-  def let_railsmdb_decls(command, args, from_path: nil)
-    let(:railsmdb) do
+  def let_railsmdb_decls(command, args, from_path: nil, env: {})
+    env_str = env.map { |h, k| "#{h}=#{k}" }.join(' ')
+
+    before :context do
       Dir.chdir(from_path || containing_folder) do
-        Open3.capture3("#{command} #{args}")
+        @railsmdb_out, @railsmdb_err, @railsmdb_status =
+          Open3.capture3("#{env_str} #{command} #{args}")
       end
     end
-
-    let(:railsmdb_out) { railsmdb[0] }
-    let(:railsmdb_err) { railsmdb[1] }
-    let(:railsmdb_status) { railsmdb[2] }
   end
 
   # Begins a new context block for invoking a Rails project's railsmdb
   # script, and yields to the given block. It is assumed that the
   # Rails project is the current directory.
   def when_running_bin_railsmdb(*args, &block)
-    command = find_command
+    opts = args.extract_options!
     arg_str = build_args_from_list(args)
 
-    context "when running `#{command} #{arg_str}`" do
-      let_railsmdb_decls(command, arg_str)
+    context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
+      let_railsmdb_decls(RAILSMDB_FULL_PATH, arg_str, **opts)
 
       class_exec(&block)
     end
@@ -97,22 +110,28 @@ RSpec.configure do
   # Tests that the `railsmdb_status` is zero.
   def it_succeeds
     it 'succeeds' do
-      expect(railsmdb_status).to be == 0
+      expect(@railsmdb_status).to be == 0
     end
   end
 
   # Tests that the `railsmdb_status` is not zero.
   def it_fails
     it 'fails' do
-      expect(railsmdb_status).not_to be == 0
+      expect(@railsmdb_status).not_to be == 0
     end
   end
 
-  # Tests that the `railsmdb_out` includes the argument (which may
-  # be a string or a regex).
+  # Tests that the `railsmdb_out` includes the argument
   def it_prints(output)
     it "prints #{maybe_summarize(output.inspect)}" do
-      expect(railsmdb_out).to include(output)
+      expect(@railsmdb_out).to include(output)
+    end
+  end
+
+  # Tests that the `railsmdb_err` includes the argument
+  def it_warns(output)
+    it "warns #{maybe_summarize(output.inspect)}" do
+      expect(@railsmdb_err).to include(output)
     end
   end
 
@@ -239,11 +258,11 @@ RSpec.configure do
 
     Dir.chdir path do
       context "and, under '#{path}'" do
-        let(:containing_folder) { File.join(super(), path) }
+        define_method(:containing_folder) { File.join(super(), path) }
 
         class_exec(&block)
       end
     end
   end
 end
-# rubocop:enable RSpec/MultipleMemoizedHelpers
+# rubocop:enable Lint/NestedMethodDefinition

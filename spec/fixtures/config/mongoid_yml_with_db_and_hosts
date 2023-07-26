@@ -1,0 +1,8 @@
+development:
+  clients:
+    default:
+      database: test_app_development
+      hosts:
+        - host1.com:1234
+        - host2.com:2345
+        - host3.com:3456
