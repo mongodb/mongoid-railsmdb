@@ -14,7 +14,7 @@ module Rails
       # add the Railsmdb templates folder to the source path
       source_paths.unshift File.join(__dir__, 'templates')
 
-      # change the --skip-active-record option to default to false. Users
+      # change the --skip-active-record option to default to true. Users
       # may pass --no-skip-active-record to enable it again, if they want
       # to use both Mongoid and ActiveRecord.
       class_option :skip_active_record, type: :boolean,
