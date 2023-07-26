@@ -56,6 +56,12 @@ module Rails
       # The following methods override the existing methods on AppGenerator,
       # to replace the default behavior with Mongoid-specific behavior.
 
+      # Overridden to ignore the "skip_active_record" guard. We always want the
+      # db folder, even when active record is being skipped.
+      def create_db_files
+        build(:db)
+      end
+
       # Overridden to save the current directory; this way, we can see
       # if it is being run from the railsmdb project directory, in
       # development, and set up the railsmdb gem dependency appropriately.
