@@ -26,7 +26,7 @@ describe 'railsmdb dbconsole' do
 
         # we're replacing `mongosh` with `echo`, so we can confirm that the
         # command is run with the expected parameters.
-        when_running_bin_railsmdb 'dbconsole', env: { MONGOSH_CMD: 'echo' } do
+        when_running_bin_railsmdb 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
           it_succeeds
           it_prints 'mongodb://host1.com:1234/test_app_development'
           it_warns 'no development configuration'
@@ -35,7 +35,7 @@ describe 'railsmdb dbconsole' do
 
       context 'when mongosh is not installed' do
         when_running_bin_railsmdb 'dbconsole',
-                                  env: { MONGOSH_CMD: missing_program } do
+                                  env: { 'MONGOSH_CMD' => missing_program } do
           it_fails
           it_warns 'mongosh is not installed'
         end
@@ -44,7 +44,7 @@ describe 'railsmdb dbconsole' do
       context 'when mongoid.yml specifies a uri' do
         write_mongoid_yml_with(:uri)
 
-        when_running_bin_railsmdb 'dbconsole', env: { MONGOSH_CMD: 'echo' } do
+        when_running_bin_railsmdb 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
           it_succeeds
           it_prints 'mongodb://user:password@mongodb.domain.com:27017/test_app_development'
         end

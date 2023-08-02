@@ -5,6 +5,8 @@ require 'spec_helper'
 app_name = 'test_app'
 other_app_name = 'other_app'
 
+MONGO_CUSTOMER_PROMPT = /I am a MongoDB customer.*=> \[yes, no\]/
+
 describe 'railsmdb new' do
   when_running_railsmdb 'new', app_name do
     it_succeeds
@@ -36,6 +38,28 @@ describe 'railsmdb new' do
       it_emits_file 'config/database.yml', containing: 'sqlite3'
       it_emits_file 'config/mongoid.yml'
       it_emits_file 'app/models/application_record.rb'
+    end
+  end
+
+  context 'when accepting the customer agreement' do
+    when_running_railsmdb 'new', app_name, '-E',
+                          prompts: { MONGO_CUSTOMER_PROMPT => "yes\n" } do
+      it_succeeds
+
+      within_folder app_name do
+        it_emits_entry_matching 'vendor/crypt_shared/mongo_crypt_v1.*'
+      end
+    end
+  end
+
+  context 'when declining the customer agreement' do
+    when_running_railsmdb 'new', app_name, '-E',
+                          prompts: { MONGO_CUSTOMER_PROMPT => "no\n" } do
+      it_succeeds
+
+      within_folder app_name do
+        it_does_not_emit_folder 'vendor/crypt_shared'
+      end
     end
   end
 end

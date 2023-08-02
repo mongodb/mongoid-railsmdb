@@ -1,0 +1,564 @@
+{
+  "versions": [
+     {
+        "changes": "https://jira.mongodb.org/issues/?jql=project%20%3D%20SERVER%20AND%20fixVersion%20%3D%20%227.0.0-rc10%22%20ORDER%20BY%20status%20DESC%2C%20priority%20DESC",
+        "continuous_release": false,
+        "current": true,
+        "date": "07/27/2023",
+        "development_release": false,
+        "downloads": [
+           {
+              "arch": "ppc64le",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-ppc64le-enterprise-rhel81-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel81"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2204-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2204-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2004-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2004-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "s390x",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-s390x-enterprise-rhel83-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel83"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse12-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse12"
+           },
+           {
+              "arch": "arm64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-arm64-enterprise-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-debian11-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "debian11"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-amazon2-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel70-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel70"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/windows/mongo_crypt_shared_v1-windows-x86_64-enterprise-7.0.0-rc10.zip"
+              },
+              "edition": "enterprise",
+              "msi": "https://downloads.mongodb.com/windows/mongodb-windows-x86_64-enterprise-7.0.0-rc10-signed.msi",
+              "target": "windows"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-x86_64-enterprise-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse15-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse15"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel80-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel80"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel90-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel90"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-rhel90-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel90"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-rhel82-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel82"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-amazon2-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-amazon2023-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2023"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-amazon2023-7.0.0-rc10.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2023"
+           }
+        ],
+        "githash": "0d1635d51d552e1d69dfc6da25b5f0488348d62e",
+        "lts_release": true,
+        "notes": "https://docs.mongodb.org/master/release-notes/7.0/",
+        "production_release": false,
+        "release_candidate": true,
+        "version": "7.0.0-rc10"
+     },
+     {
+        "changes": "https://jira.mongodb.org/issues/?jql=project%20%3D%20SERVER%20AND%20fixVersion%20%3D%20%226.3.2%22%20ORDER%20BY%20status%20DESC%2C%20priority%20DESC",
+        "continuous_release": true,
+        "current": true,
+        "date": "06/28/2023",
+        "development_release": true,
+        "downloads": [
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2204-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2204-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2004-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2004-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse12-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse12"
+           },
+           {
+              "arch": "arm64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-arm64-enterprise-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-debian11-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "debian11"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-amazon2-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel70-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel70"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/windows/mongo_crypt_shared_v1-windows-x86_64-enterprise-6.3.2.zip"
+              },
+              "edition": "enterprise",
+              "msi": "https://downloads.mongodb.com/windows/mongodb-windows-x86_64-enterprise-6.3.2-signed.msi",
+              "target": "windows"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-x86_64-enterprise-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu1804-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu1804"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse15-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse15"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu1804-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu1804"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-debian10-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "debian10"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel80-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel80"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel90-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel90"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-rhel82-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel82"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-amazon2-6.3.2.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           }
+        ],
+        "githash": "3427190e54b188e0e0b2b38399e95edfa31c2c9e",
+        "lts_release": false,
+        "notes": "https://docs.mongodb.org/master/release-notes/6.3/",
+        "production_release": false,
+        "release_candidate": false,
+        "version": "6.3.2"
+     },
+     {
+        "changes": "https://jira.mongodb.org/issues/?jql=project%20%3D%20SERVER%20AND%20fixVersion%20%3D%20%226.0.8%22%20ORDER%20BY%20status%20DESC%2C%20priority%20DESC",
+        "continuous_release": false,
+        "current": true,
+        "date": "07/10/2023",
+        "development_release": false,
+        "downloads": [
+           {
+              "arch": "ppc64le",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-ppc64le-enterprise-rhel71-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel71"
+           },
+           {
+              "arch": "ppc64le",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-ppc64le-enterprise-rhel81-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel81"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2204-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2204-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2204"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu2004-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu2004-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu2004"
+           },
+           {
+              "arch": "s390x",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-s390x-enterprise-rhel83-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel83"
+           },
+           {
+              "arch": "s390x",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-s390x-enterprise-rhel72-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel72"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse12-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse12"
+           },
+           {
+              "arch": "arm64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-arm64-enterprise-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-debian11-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "debian11"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-amazon2-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel70-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel70"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/windows/mongo_crypt_shared_v1-windows-x86_64-enterprise-6.0.8.zip"
+              },
+              "edition": "enterprise",
+              "msi": "https://downloads.mongodb.com/windows/mongodb-windows-x86_64-enterprise-6.0.8-signed.msi",
+              "target": "windows"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/osx/mongo_crypt_shared_v1-macos-x86_64-enterprise-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "macos"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-ubuntu1804-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu1804"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-suse15-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "suse15"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-ubuntu1804-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "ubuntu1804"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-debian10-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "debian10"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel80-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel80"
+           },
+           {
+              "arch": "x86_64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-x86_64-enterprise-rhel90-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel90"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-rhel90-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel90"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-rhel82-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "rhel82"
+           },
+           {
+              "arch": "aarch64",
+              "crypt_shared": {
+                 "url": "https://downloads.mongodb.com/linux/mongo_crypt_shared_v1-linux-aarch64-enterprise-amazon2-6.0.8.tgz"
+              },
+              "edition": "enterprise",
+              "target": "amazon2"
+           }
+        ],
+        "githash": "3d84c0dd4e5d99be0d69003652313e7eaf4cdd74",
+        "lts_release": true,
+        "notes": "https://docs.mongodb.org/master/release-notes/6.0/",
+        "production_release": true,
+        "release_candidate": false,
+        "version": "6.0.8"
+     }
+  ]
+}
