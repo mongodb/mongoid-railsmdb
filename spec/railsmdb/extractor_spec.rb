@@ -5,7 +5,7 @@ require 'railsmdb/extractor'
 
 describe Railsmdb::Extractor do
   describe '.for' do
-    let(:extractor) { Railsmdb::Extractor.for(archive_path) }
+    let(:extractor) { described_class.for(archive_path) }
 
     context 'when given a path to a zip file' do
       let(:archive_path) { '/path/to/file.zip' }
@@ -61,11 +61,11 @@ describe Railsmdb::Extractor do
           let(:filename) { 'bogus/entry.txt' }
 
           it 'does not invoke the block' do
-            expect(extracted_name).to be nil
+            expect(extracted_name).to be_nil
           end
 
           it 'returns nil' do
-            expect(return_value).to be nil
+            expect(return_value).to be_nil
           end
         end
 

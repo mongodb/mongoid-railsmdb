@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_support/encrypted_configuration'
+require 'os'
 require 'railsmdb/version'
 require 'railsmdb/crypt_shared/catalog'
 require 'railsmdb/downloader'
@@ -14,8 +16,45 @@ module Rails
     # application.
     #
     # @api private
+    #
+    # rubocop:disable Metrics/ClassLength
     class AppGenerator
       include Railsmdb::Prioritizable
+
+      KEY_VAULT_CONFIG = <<~CONFIG
+        # This client is used to obtain the encryption keys from the key vault.
+        # For security reasons, this should be a different database instance than
+        # your primary application database.
+        key_vault:
+          uri: mongodb://localhost:27017
+
+      CONFIG
+
+      AUTO_ENCRYPTION_CONFIG = <<~CONFIG.freeze
+        # You can read about the auto encryption options here:
+        # https://www.mongodb.com/docs/ruby-driver/v#{Mongo::VERSION.split('.').first(2).join('.')}/reference/in-use-encryption/client-side-encryption/#auto-encryption-options
+        auto_encryption_options:
+          key_vault_client: 'key_vault'
+          key_vault_namespace: 'encryption.__keyVault'
+          kms_providers:
+            # Using a local master key is insecure and is not recommended if you plan
+            # to use client-side encryption in production.
+            #
+            # To learn how to set up a remote Key Management Service, see the tutorials
+            # at https://www.mongodb.com/docs/manual/core/csfle/tutorials/.
+            local:
+              key: '<%= Rails.application.credentials.mongodb_master_key %>'
+          extra_options:
+            crypt_shared_lib_path: %crypt-shared-path%
+
+      CONFIG
+
+      PRELOAD_MODELS_OPTION = <<~CONFIG
+        #
+        # Setting it to true is recommended for auto encryption to work
+        # properly in development.
+        preload_models: true
+      CONFIG
 
       # add the Railsmdb templates folder to the source path
       source_paths.unshift File.join(__dir__, 'templates')
@@ -75,6 +114,40 @@ module Rails
         file = Gem.find_files('rails/generators/mongoid/config/templates/mongoid.yml').first
         database_name = app_name
         template file, 'config/mongoid.yml', context: binding
+      end
+
+      # Appends a new local master key to the credentials file
+      def add_mongodb_local_master_key_to_credentials
+        return unless @okay_to_support_encryption
+
+        say_status :append, CREDENTIALS_FILE_PATH
+
+        credentials_file.change do |tmp_path|
+          File.open(tmp_path, 'a') do |io|
+            io.puts
+            io.puts '# Master key for MongoDB auto encryption'
+            # passing `96 / 2` because we need a 96-byte key, but
+            # SecureRandom.hex returns a hex-encoded string, which will
+            # be two bytes for requested byte.
+            io.puts "mongodb_master_key: '#{SecureRandom.hex(96 / 2)}'"
+          end
+        end
+      end
+
+      # If encryption is enabled, update the mongoid.yml with the necessary
+      # options for encryption.
+      def add_encryption_options_to_mongoid_yml
+        return unless @okay_to_support_encryption
+
+        mongoid_yml = File.join(Dir.pwd, 'config/mongoid.yml')
+        contents = File.read(mongoid_yml)
+
+        contents = insert_key_vault_config(contents)
+        contents = insert_auto_encryption_options(contents)
+        contents = insert_preload_models_option(contents)
+
+        say_status :update, 'config/mongoid.yml'
+        File.write(mongoid_yml, contents)
       end
 
       # Emit the mongoid.rb initializer. Unlike mongoid.yml, this is not
@@ -201,10 +274,20 @@ module Rails
       # @return [ Rails::Generators::AppBase::GemfileEntry ] the gem
       #   entry for Mongoid.
       def mongoid_gem_entry
-        GemfileEntry.version \
-          'mongoid',
-          ::Mongoid::VERSION,
-          'Use MongoDB for the database, with Mongoid as the ODM'
+        if @okay_to_support_encryption && ::Mongoid::VERSION < '9.0'
+          # FIXME: once Mongoid 9.0 is released, update this so that it
+          # uses that released version.
+          GemfileEntry.github \
+            'mongoid',
+            'mongodb/mongoid',
+            'master',
+            'Encryption requires an unreleased version of Mongoid'
+        else
+          GemfileEntry.version \
+            'mongoid',
+            ::Mongoid::VERSION,
+            'Use MongoDB for the database, with Mongoid as the ODM'
+        end
       end
 
       # The gem entry for the Railsmdb gem. If run from a railsmdb
@@ -238,6 +321,16 @@ module Rails
           'Encryption helper for MongoDB-based applications'
       end
 
+      # Build the gem entry for the ffi gem.
+      #
+      # @return [ Rails::Generators::AppBase::GemfileEntry ] the gem
+      #   entry for ffi gem.
+      def ffi_gem_entry
+        GemfileEntry.version \
+          'ffi', nil,
+          'Mongoid needs the ffi gem when encryption is enabled'
+      end
+
       # If encryption is enabled, adds the necessary gems to the given list
       # of gem entries, to prepare them to be added to the gemfile.
       #
@@ -246,6 +339,7 @@ module Rails
         return unless @okay_to_support_encryption
 
         list.push libmongocrypt_helper_gem_entry
+        list.push ffi_gem_entry
       end
 
       # The location of the directory where the crypt_shared library will
@@ -264,7 +358,11 @@ module Rails
 
         extracted = extract_crypt_shared_from_file(archive)
 
-        log :error, 'No crypt_shared library could be found in the downloaded archive' unless extracted
+        if extracted
+          FileUtils.rm archive
+        else
+          log :error, 'No crypt_shared library could be found in the downloaded archive'
+        end
       end
 
       # Download the crypt_shared library archive from the given url and
@@ -331,6 +429,103 @@ module Rails
           false
         end
       end
+
+      # Attempts to insert the key-vault configuration into the given
+      # string, which must be the contents of the generated mongoid.yml file.
+      #
+      # @param [String] contents the contents of mongoid.yml
+      #
+      # @return [ String ] the updated contents
+      def insert_key_vault_config(contents)
+        position = (contents =~ /^\s*# Defines the default client/)
+        unless position
+          say_error 'Default mongoid.yml format has changed; cannot update it with key-vault settings'
+          return contents
+        end
+
+        indent_size = contents[position..][/^\s*/].length
+        contents[position, 0] = KEY_VAULT_CONFIG.indent(indent_size).gsub(/%app%/, app_name)
+
+        contents
+      end
+
+      # Returns the path to the downloaded crypt-shared library.
+      #
+      # @return [ String ] path to the crypt_shared library.
+      def crypt_shared_path
+        ext = if OS.windows? || OS::Underlying.windows?
+                'dll'
+              elsif OS.mac?
+                'dylib'
+              else
+                'so'
+              end
+
+        File.join(Dir.pwd, 'vendor', 'crypt_shared', "mongo_crypt_v1.#{ext}")
+      end
+
+      # Attempts to insert the auto-encryption configuration into the given
+      # string, which must be the contents of the generated mongoid.yml file.
+      #
+      # @param [String] contents the contents of mongoid.yml
+      #
+      # @return [ String ] the updated contents
+      def insert_auto_encryption_options(contents)
+        position = (contents =~ /\sdefault:.*?\s+options:\n/m)
+
+        unless position
+          say_error 'Default mongoid.yml format has changed; cannot update it with auto-encryption settings'
+          return contents
+        end
+
+        position += Regexp.last_match(0).length
+
+        indent_size = contents[position..][/^\s*/].length
+        contents[position, 0] = AUTO_ENCRYPTION_CONFIG
+                                .indent(indent_size)
+                                .gsub(/%crypt-shared-path%/, crypt_shared_path.inspect)
+
+        contents
+      end
+
+      # Attempts to enable the preload_models option in the given
+      # string, which must be the contents of the generated mongoid.yml file.
+      #
+      # @param [String] contents the contents of mongoid.yml
+      #
+      # @return [ String ] the updated contents
+      def insert_preload_models_option(contents)
+        position = (contents =~ /^\s+# preload_models: .*?\n/)
+
+        unless position
+          say_error 'Default mongoid.yml format has changed; cannot enable preload_models'
+          return contents
+        end
+
+        length = Regexp.last_match(0).length
+
+        indent_size = contents[position..][/^\s*/].length
+        contents[position, length] = PRELOAD_MODELS_OPTION
+                                     .indent(indent_size)
+
+        contents
+      end
+
+      CREDENTIALS_FILE_PATH = 'config/credentials.yml.enc'
+
+      # Return the encrypted credentials file.
+      #
+      # @return [ ActiveSupport::EncryptedConfiguration ] the encrypted
+      #    credentials file.
+      def credentials_file
+        ActiveSupport::EncryptedConfiguration.new(
+          config_path: CREDENTIALS_FILE_PATH,
+          key_path: 'config/master.key',
+          env_key: 'RAILS_MASTER_KEY',
+          raise_if_missing_key: true
+        )
+      end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

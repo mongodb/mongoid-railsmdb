@@ -4,18 +4,22 @@ require 'spec_helper'
 require 'railsmdb/crypt_shared/catalog'
 
 describe Railsmdb::CryptShared::Catalog do
+  attr_accessor :catalog
+
   # avoid reloading and reparsing the catalog dataset for every example.
   before :context do
     dataset = JSON.parse(fixture_from(:dataset, :catalog))
-    @catalog = described_class.new(dataset)
+    self.catalog = described_class.new(dataset)
   end
 
   describe '.current' do
-    it 'uses Listing.fetch as the data source' do
-      listing = class_double("Railsmdb::CryptShared::Listing").as_stubbed_const
-      expect(listing).to receive(:fetch).and_return({ 'versions' => [] })
+    let(:listing) { class_double(Railsmdb::CryptShared::Listing).as_stubbed_const }
 
+    before { allow(listing).to receive(:fetch).and_return({ 'versions' => [] }) }
+
+    it 'uses Listing.fetch as the data source' do
       catalog = described_class.current
+      expect(listing).to have_received(:fetch)
       expect(catalog.listing).to be == { 'versions' => [] }
     end
   end
@@ -23,7 +27,7 @@ describe Railsmdb::CryptShared::Catalog do
   describe '#downloads' do
     let(:results) do
       [].tap do |results|
-        @catalog.downloads(criteria) do |item|
+        catalog.downloads(criteria) do |item|
           results.push item
         end
       end
@@ -53,8 +57,8 @@ describe Railsmdb::CryptShared::Catalog do
   end
 
   describe '#optimal_download_url_for_this_host' do
-    it 'should return a single download url' do
-      expect(@catalog.optimal_download_url_for_this_host).to match(/^https:\/\//)
+    it 'returns a single download url' do
+      expect(catalog.optimal_download_url_for_this_host).to match(%r{^https://})
     end
   end
 end
