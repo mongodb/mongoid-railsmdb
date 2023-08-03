@@ -134,6 +134,24 @@ RSpec.configure do
     end
   end
 
+  # Tests that the given key exists in the encrypted credentials file
+  def it_stores_credentials_for(key)
+    it "stores credentials for #{key.inspect}" do
+      Dir.chdir(containing_folder) do
+        expect(credentials_file).to match(/^#{key}: /)
+      end
+    end
+  end
+
+  # Tests that the given key does not exist in the encrypted credentials file
+  def it_does_not_store_credentials_for(key)
+    it "does not store credentials for #{key.inspect}" do
+      Dir.chdir(containing_folder) do
+        expect(credentials_file).not_to match(/^#{key}: /)
+      end
+    end
+  end
+
   # Tests that the `railsmdb_status` is not zero.
   def it_fails
     it 'fails' do
@@ -188,7 +206,12 @@ RSpec.configure do
     Array(patterns).each do |pattern|
       it "contains #{maybe_summarize(pattern.inspect)}" do
         content = File.read(full_path)
-        expect(content).to include(pattern)
+
+        if pattern.is_a?(Regexp)
+          expect(content).to match(pattern)
+        else
+          expect(content).to include(pattern)
+        end
       end
     end
   end
@@ -199,7 +222,12 @@ RSpec.configure do
     Array(patterns).each do |pattern|
       it "does not contain #{maybe_summarize(pattern.inspect)}" do
         content = File.read(full_path)
-        expect(content).not_to include(pattern)
+
+        if pattern.is_a?(Regexp)
+          expect(content).not_to match(pattern)
+        else
+          expect(content).not_to include(pattern)
+        end
       end
     end
   end
@@ -324,6 +352,14 @@ RSpec.configure do
   def capture_without_interaction(env, command, args)
     @railsmdb_out, @railsmdb_err, @railsmdb_status =
       Open3.capture3(env, "#{command} #{args}")
+  end
+
+  # @return [ String ] the contents of the encrypted rails credential
+  #   file.
+  def credentials_file
+    Dir.chdir(containing_folder) do
+      `EDITOR=cat bin/rails credentials:edit 2>&1`
+    end
   end
 end
 # rubocop:enable Lint/NestedMethodDefinition
