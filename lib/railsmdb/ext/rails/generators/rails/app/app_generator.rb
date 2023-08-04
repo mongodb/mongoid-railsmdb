@@ -363,9 +363,7 @@ module Rails
 
         extracted = extract_crypt_shared_from_file(archive)
 
-        unless extracted
-          log :error, 'No crypt_shared library could be found in the downloaded archive'
-        end
+        log :error, 'No crypt_shared library could be found in the downloaded archive' unless extracted
       end
 
       # Computes the path to the cache for the file at the given URL.
@@ -494,7 +492,7 @@ module Rails
                 'so'
               end
 
-        %Q{"<%= Rails.root.join('vendor', 'crypt_shared', 'mongo_crypt_v1.#{ext}') %>"}
+        %{"<%= Rails.root.join('vendor', 'crypt_shared', 'mongo_crypt_v1.#{ext}') %>"}
       end
 
       # Attempts to insert the auto-encryption configuration into the given

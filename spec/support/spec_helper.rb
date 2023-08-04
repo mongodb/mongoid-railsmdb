@@ -205,12 +205,10 @@ RSpec.configure do
   def it_contains(patterns)
     Array(patterns).each do |pattern|
       it "contains #{maybe_summarize(pattern.inspect)}" do
-        content = File.read(full_path)
-
         if pattern.is_a?(Regexp)
-          expect(content).to match(pattern)
+          expect(file_contents).to match(pattern)
         else
-          expect(content).to include(pattern)
+          expect(file_contents).to include(pattern)
         end
       end
     end
@@ -221,12 +219,10 @@ RSpec.configure do
   def it_does_not_contain(patterns)
     Array(patterns).each do |pattern|
       it "does not contain #{maybe_summarize(pattern.inspect)}" do
-        content = File.read(full_path)
-
         if pattern.is_a?(Regexp)
-          expect(content).not_to match(pattern)
+          expect(file_contents).not_to match(pattern)
         else
-          expect(content).not_to include(pattern)
+          expect(file_contents).not_to include(pattern)
         end
       end
     end
@@ -297,6 +293,7 @@ RSpec.configure do
   def entry_at(path, type: 'file', &block)
     context "#{type} '#{path}'" do
       let(:full_path) { File.join(containing_folder, path) }
+      let(:file_contents) { File.read(path) }
 
       class_exec(&block)
     end
