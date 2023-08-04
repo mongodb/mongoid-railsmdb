@@ -51,11 +51,11 @@ describe 'railsmdb new' do
         it_stores_credentials_for 'mongodb_master_key'
         it_emits_entry_matching 'vendor/crypt_shared/mongo_crypt_v1.*'
         it_emits_file 'config/mongoid.yml',
-          containing: [
-           '# This client is used to obtain the encryption keys',
-           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
-           '# Setting it to true is recommended for auto encryption'
-          ]
+                      containing: [
+                        '# This client is used to obtain the encryption keys',
+                        /crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1/,
+                        '# Setting it to true is recommended for auto encryption'
+                      ]
       end
     end
   end
@@ -70,11 +70,11 @@ describe 'railsmdb new' do
         it_does_not_store_credentials_for 'mongodb_master_key'
         it_does_not_emit_folder 'vendor/crypt_shared'
         it_emits_file 'config/mongoid.yml',
-          without: [
-           '# This client is used to obtain the encryption keys',
-           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
-           '# Setting it to true is recommended for auto encryption'
-          ]
+                      without: [
+                        '# This client is used to obtain the encryption keys',
+                        /crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1/,
+                        '# Setting it to true is recommended for auto encryption'
+                      ]
       end
     end
   end
