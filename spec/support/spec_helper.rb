@@ -293,7 +293,7 @@ RSpec.configure do
   def entry_at(path, type: 'file', &block)
     context "#{type} '#{path}'" do
       let(:full_path) { File.join(containing_folder, path) }
-      let(:file_contents) { File.read(path) }
+      let(:file_contents) { File.read(full_path) }
 
       class_exec(&block)
     end
