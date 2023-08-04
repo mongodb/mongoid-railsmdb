@@ -57,8 +57,16 @@ describe Railsmdb::CryptShared::Catalog do
   end
 
   describe '#optimal_download_url_for_this_host' do
+    let(:result) { catalog.optimal_download_url_for_this_host }
+    let(:optimal_url) { result[0] }
+    let(:optimal_sha) { result[1] }
+
     it 'returns a single download url' do
-      expect(catalog.optimal_download_url_for_this_host).to match(%r{^https://})
+      expect(optimal_url).to match(%r{^https://})
+    end
+
+    it 'returns a sha256 hash for the file' do
+      expect(optimal_sha).to match(/^[a-f0-9]{64}$/)
     end
   end
 end

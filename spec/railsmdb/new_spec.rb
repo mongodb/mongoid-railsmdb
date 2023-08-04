@@ -53,7 +53,7 @@ describe 'railsmdb new' do
         it_emits_file 'config/mongoid.yml',
           containing: [
            '# This client is used to obtain the encryption keys',
-           %r{crypt_shared_lib_path: .*/vendor/crypt_shared/mongo_crypt_v1},
+           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
            '# Setting it to true is recommended for auto encryption'
           ]
       end
@@ -72,7 +72,7 @@ describe 'railsmdb new' do
         it_emits_file 'config/mongoid.yml',
           without: [
            '# This client is used to obtain the encryption keys',
-           %r{crypt_shared_lib_path: .*/vendor/crypt_shared/mongo_crypt_v1},
+           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
            '# Setting it to true is recommended for auto encryption'
           ]
       end

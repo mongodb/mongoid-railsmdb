@@ -2,6 +2,7 @@
 
 require 'json'
 require 'open-uri'
+require 'tmpdir'
 
 module Railsmdb
   module CryptShared
@@ -30,7 +31,7 @@ module Railsmdb
       CURRENT_URI = 'https://downloads.mongodb.org/current.json'
 
       # where the JSON file should be cached
-      CURRENT_CACHE = '.current.json'
+      CURRENT_CACHE = File.join(Dir.tmpdir, '.current.json')
 
       # how old the cache may be before it must be fetched again
       CACHE_CUTOFF = 24 * 60 * 60 # seconds in 24 hours

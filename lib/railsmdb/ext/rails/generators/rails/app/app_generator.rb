@@ -8,6 +8,7 @@ require 'railsmdb/downloader'
 require 'railsmdb/extractor'
 require 'railsmdb/prioritizable'
 require 'rails/generators/rails/app/app_generator'
+require 'digest'
 require 'mongoid'
 
 module Rails
@@ -98,10 +99,10 @@ module Rails
 
         log :fetch, 'current MongoDB catalog'
         catalog = Railsmdb::CryptShared::Catalog.current
-        url = catalog.optimal_download_url_for_this_host
+        url, sha = catalog.optimal_download_url_for_this_host
 
         if url
-          fetch_and_extract_crypt_shared_from_url(url)
+          fetch_and_extract_crypt_shared_from_url(url, sha)
         else
           say_error 'Cannot find download URL for crypt_shared, for this host'
         end
@@ -350,34 +351,66 @@ module Rails
       # and install it in vendor/crypt_shared.
       #
       # @param [ String ] url the url to the crypt_shared library archive
-      def fetch_and_extract_crypt_shared_from_url(url)
-        archive = fetch_crypt_shared_from_url(url)
+      # @param [ String ] sha the sha hash for the file
+      def fetch_and_extract_crypt_shared_from_url(url, sha)
+        archive = fetch_crypt_shared_from_cache(url, sha) ||
+                  fetch_crypt_shared_from_url(url, sha)
+
+        return unless archive
 
         log :directory, CRYPT_SHARED_DIR
         FileUtils.mkdir_p CRYPT_SHARED_DIR
 
         extracted = extract_crypt_shared_from_file(archive)
 
-        if extracted
-          FileUtils.rm archive
-        else
+        unless extracted
           log :error, 'No crypt_shared library could be found in the downloaded archive'
         end
+      end
+
+      # Computes the path to the cache for the file at the given URL.
+      #
+      # @param [ String ] url the url to consider
+      #
+      # @return [ String ] the path to the file's location on disk.
+      def cached_file_for(url)
+        uri = URI.parse(url)
+        File.join(Dir.tmpdir, File.basename(uri.path))
+      end
+
+      # Look in the cache location for a file downloaded from the given
+      # url. If it exists, make sure the SHA hash matches.
+      #
+      # @param [ String ] url the url to fetch the file from
+      # @param [ String ] sha the sha256 hash for the file
+      #
+      # @return [ String | nil ] the path to the file, if it exists, or nil
+      def fetch_crypt_shared_from_cache(url, sha)
+        path = cached_file_for(url)
+
+        return path if File.exist?(path) && Digest::SHA256.file(path).to_s == sha
+
+        nil
       end
 
       # Download the crypt_shared library archive from the given url and
       # store it in the current directory.
       #
       # @param [ String ] url the url to fetch the file from
+      # @param [ String ] sha the sha256 hash for the file
       #
       # @return [ String ] the filename that the archive was saved to
-      def fetch_crypt_shared_from_url(url)
+      def fetch_crypt_shared_from_url(url, sha)
         log :fetch, url
 
-        uri = URI.parse(url)
-        File.basename(uri.path).tap do |archive|
+        cached_file_for(url).tap do |archive|
           Railsmdb::Downloader.fetch(url, archive) { print '.' }
           puts
+
+          unless File.exist?(archive) && Digest::SHA256.file(archive).to_s == sha
+            log :error, 'an uncorrupted crypt-shared library could not be downloaded'
+            return nil
+          end
         end
       end
 
@@ -461,7 +494,7 @@ module Rails
                 'so'
               end
 
-        File.join(Dir.pwd, 'vendor', 'crypt_shared', "mongo_crypt_v1.#{ext}")
+        %Q{"<%= Rails.root.join('vendor', 'crypt_shared', 'mongo_crypt_v1.#{ext}') %>"}
       end
 
       # Attempts to insert the auto-encryption configuration into the given
@@ -483,7 +516,7 @@ module Rails
         indent_size = contents[position..][/^\s*/].length
         contents[position, 0] = AUTO_ENCRYPTION_CONFIG
                                 .indent(indent_size)
-                                .gsub(/%crypt-shared-path%/, crypt_shared_path.inspect)
+                                .gsub(/%crypt-shared-path%/, crypt_shared_path)
 
         contents
       end

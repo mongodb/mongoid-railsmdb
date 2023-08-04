@@ -62,9 +62,12 @@ module Railsmdb
       # criteria for the current host.
       #
       # @param [ String ] which the download entry to return
+      #
+      # @return [ Array<String, String> ] a tuple of (url, sha256) for the
+      #    requested download.
       def optimal_download_url_for_this_host(which = 'crypt_shared')
         downloads(production_release: true, downloads: download_criteria) do |dl|
-          return dl[which]['url']
+          return [ dl[which]['url'], dl[which]['sha256'] ]
         end
 
         nil
