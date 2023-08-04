@@ -1,0 +1,31 @@
+---
+name: Run Railsmdb Tests
+
+on: [ push, pull_request]
+
+jobs:
+  build:
+    name: "${{matrix.ruby}} mongoid-${{matrix.mongoid}}"
+    env:
+      CI: true
+    runs-on: "${{matrix.os}}"
+    strategy:
+      fail-fast: false
+      matrix:
+        mongoid: [ '8.1' ]
+        ruby: [ 'ruby-3.0', 'ruby-3.1', 'ruby-3.2' ]
+        os: [ ubuntu-latest ]
+        task: test
+    steps:
+      - name: repo checkout
+        uses: actions/checkout@v3
+      - name: load ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{matrix.ruby}}"
+          bundler: 2
+      - name: bundle
+        run: bundle install --jobs 4 --retry 3
+      - name: test
+        timeout-minutes: 60
+        run: bundle exec rake spec

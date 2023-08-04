@@ -35,11 +35,11 @@ Gem::Specification.new do |s|
   s.files += Dir.glob('lib/**/*')
 
   s.add_dependency 'rails', '~> 7.0'
-  s.add_dependency 'mongoid', '>= 8.0'
   s.add_dependency 'os', '~> 1.1'
   s.add_dependency 'faraday', '~> 2.7'
   s.add_dependency 'minitar', '~> 0.9'
   s.add_dependency 'rubyzip', '~> 2.3'
+  s.add_dependency 'mongoid', '>= 8.0'
 
   s.required_ruby_version = '>= 3.0'
 end
