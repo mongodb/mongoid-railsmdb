@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'mongoid'
 require 'rails/command/base'
 require 'rails/command/environment_argument'
 
