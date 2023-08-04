@@ -5,6 +5,8 @@ require 'spec_helper'
 app_name = 'test_app'
 other_app_name = 'other_app'
 
+MONGO_CUSTOMER_PROMPT = /I am a MongoDB customer.*=> \[yes, no\]/
+
 describe 'railsmdb new' do
   when_running_railsmdb 'new', app_name do
     it_succeeds
@@ -36,6 +38,44 @@ describe 'railsmdb new' do
       it_emits_file 'config/database.yml', containing: 'sqlite3'
       it_emits_file 'config/mongoid.yml'
       it_emits_file 'app/models/application_record.rb'
+    end
+  end
+
+  context 'when accepting the customer agreement' do
+    when_running_railsmdb 'new', app_name, '-E',
+                          prompts: { MONGO_CUSTOMER_PROMPT => "yes\n" } do
+      it_succeeds
+
+      within_folder app_name do
+        it_emits_file 'Gemfile', containing: %w[ ffi libmongocrypt-helper ]
+        it_stores_credentials_for 'mongodb_master_key'
+        it_emits_entry_matching 'vendor/crypt_shared/mongo_crypt_v1.*'
+        it_emits_file 'config/mongoid.yml',
+          containing: [
+           '# This client is used to obtain the encryption keys',
+           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
+           '# Setting it to true is recommended for auto encryption'
+          ]
+      end
+    end
+  end
+
+  context 'when declining the customer agreement' do
+    when_running_railsmdb 'new', app_name, '-E',
+                          prompts: { MONGO_CUSTOMER_PROMPT => "no\n" } do
+      it_succeeds
+
+      within_folder app_name do
+        it_emits_file 'Gemfile', without: %w[ ffi libmongocrypt-helper ]
+        it_does_not_store_credentials_for 'mongodb_master_key'
+        it_does_not_emit_folder 'vendor/crypt_shared'
+        it_emits_file 'config/mongoid.yml',
+          without: [
+           '# This client is used to obtain the encryption keys',
+           %r{crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1},
+           '# Setting it to true is recommended for auto encryption'
+          ]
+      end
     end
   end
 end

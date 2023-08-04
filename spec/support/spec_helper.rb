@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'open3'
 require 'fileutils'
 require 'active_support/core_ext/array/extract_options'
+require 'support/process_interaction_manager'
 
 PROJECT_ROOT = File.expand_path('../..', __dir__)
 RAILSMDB_CMD = 'railsmdb'
@@ -34,6 +34,16 @@ end
 
 # rubocop:disable Lint/NestedMethodDefinition
 RSpec.configure do
+  # Returns the path to the given fixture.
+  #
+  # @param [ String | Symbol ] kind The type of the fixture (config, etc.)
+  # @param [ String | Symbol ] name The name of the fixture
+  #
+  # @return [ String ] the path name of the given fixture
+  def fixture_path_for(kind, name)
+    File.join(File.expand_path('../fixtures', __dir__), kind.to_s, name.to_s)
+  end
+
   # Read fixture data from the given fixture.
   #
   # @param [ String | Symbol ] kind The type of the fixture (config, etc.)
@@ -41,7 +51,7 @@ RSpec.configure do
   #
   # @return [ String ] the contents of the given fixture
   def fixture_from(kind, name)
-    File.read(File.join(File.expand_path('../fixtures', __dir__), kind.to_s, name.to_s))
+    File.read(fixture_path_for(kind, name))
   end
 
   # Write a file at the given path, relative to the containing folder.
@@ -54,7 +64,14 @@ RSpec.configure do
 
   # Begins a new context block for invoking the Railsmdb project's railsmdb
   # script, and yields to the given block.
+  #
+  # @note When running this command with the `prompts` argument, you must make
+  #   sure that the process being invoked is run with output buffering
+  #   disabled. For Ruby programs, this means explicitly calling
+  #   `STDOUT.sync = true` in the invoked script.
   def when_running_railsmdb(*args, &block)
+    opts = args.extract_options!
+
     FileUtils.mkdir_p RAILSMDB_SANDBOX
 
     Dir.chdir(RAILSMDB_SANDBOX) do
@@ -70,7 +87,7 @@ RSpec.configure do
           FileUtils.mkdir_p RAILSMDB_SANDBOX
         end
 
-        let_railsmdb_decls(RAILSMDB_FULL_PATH, arg_str, from_path: RAILSMDB_SANDBOX)
+        invoke_railsmdb(RAILSMDB_FULL_PATH, arg_str, from_path: RAILSMDB_SANDBOX, **opts)
 
         class_exec(&block)
       end
@@ -82,13 +99,14 @@ RSpec.configure do
   # err streams, and the status as a 3-tuple. `railsmdb_out`,
   # `railsmdb_err`, and `railsmdb_status` variables are available for
   # convenience in accessing the elements of that tuple.
-  def let_railsmdb_decls(command, args, from_path: nil, env: {})
-    env_str = env.map { |h, k| "#{h}=#{k}" }.join(' ')
-
+  def invoke_railsmdb(command, args, from_path: nil, env: {}, prompts: {})
     before :context do
       Dir.chdir(from_path || containing_folder) do
-        @railsmdb_out, @railsmdb_err, @railsmdb_status =
-          Open3.capture3("#{env_str} #{command} #{args}")
+        if prompts.any?
+          capture_with_interaction(env, command, args, prompts)
+        else
+          capture_without_interaction(env, command, args)
+        end
       end
     end
   end
@@ -101,7 +119,7 @@ RSpec.configure do
     arg_str = build_args_from_list(args)
 
     context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
-      let_railsmdb_decls(RAILSMDB_FULL_PATH, arg_str, **opts)
+      invoke_railsmdb(RAILSMDB_FULL_PATH, arg_str, **opts)
 
       class_exec(&block)
     end
@@ -110,7 +128,27 @@ RSpec.configure do
   # Tests that the `railsmdb_status` is zero.
   def it_succeeds
     it 'succeeds' do
-      expect(@railsmdb_status).to be == 0
+      expect(@railsmdb_status).to \
+        be == 0,
+        "status is #{@railsmdb_status}, stderr is #{@railsmdb_err.inspect}"
+    end
+  end
+
+  # Tests that the given key exists in the encrypted credentials file
+  def it_stores_credentials_for(key)
+    it "stores credentials for #{key.inspect}" do
+      Dir.chdir(containing_folder) do
+        expect(credentials_file).to match(/^#{key}: /)
+      end
+    end
+  end
+
+  # Tests that the given key does not exist in the encrypted credentials file
+  def it_does_not_store_credentials_for(key)
+    it "does not store credentials for #{key.inspect}" do
+      Dir.chdir(containing_folder) do
+        expect(credentials_file).not_to match(/^#{key}: /)
+      end
     end
   end
 
@@ -152,13 +190,28 @@ RSpec.configure do
     end
   end
 
+  # Like `it_emits_file`, but it ensures a file or directory matching the
+  # given glob pattern exists.
+  def it_emits_entry_matching(pattern)
+    entry_at pattern, type: 'entry matching' do
+      it 'is emitted' do
+        expect(Dir.glob(full_path)).not_to be_empty
+      end
+    end
+  end
+
   # Tests that file indicated by the `full_path` let variable
   # includes all of the given patterns.
   def it_contains(patterns)
     Array(patterns).each do |pattern|
       it "contains #{maybe_summarize(pattern.inspect)}" do
         content = File.read(full_path)
-        expect(content).to include(pattern)
+
+        if pattern.is_a?(Regexp)
+          expect(content).to match(pattern)
+        else
+          expect(content).to include(pattern)
+        end
       end
     end
   end
@@ -169,7 +222,12 @@ RSpec.configure do
     Array(patterns).each do |pattern|
       it "does not contain #{maybe_summarize(pattern.inspect)}" do
         content = File.read(full_path)
-        expect(content).not_to include(pattern)
+
+        if pattern.is_a?(Regexp)
+          expect(content).not_to match(pattern)
+        else
+          expect(content).not_to include(pattern)
+        end
       end
     end
   end
@@ -262,6 +320,45 @@ RSpec.configure do
 
         class_exec(&block)
       end
+    end
+  end
+
+  # Runs the given command, with the given environment and arguments.
+  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
+  # and the status is saved (as @railsmdb_status). If any output matches
+  # any of the keys in `prompts`, the corresponding string will be written
+  # to stdin.
+  #
+  # @param [ Hash ] env the environment to use
+  # @param [ String ] command the command to invoke
+  # @param [ String ] args the argument string
+  # @param [ Hash ] prompts the prompts to interact with
+  def capture_with_interaction(env, command, args, prompts)
+    manager = ProcessInteractionManager.new(env, "#{command} #{args}", prompts)
+    result = manager.run
+
+    @railsmdb_status = result[:status]
+    @railsmdb_out = result[:stdout]
+    @railsmdb_err = result[:stderr]
+  end
+
+  # Runs the given command, with the given environment and arguments.
+  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
+  # and the status is saved (as @railsmdb_status).
+  #
+  # @param [ Hash ] env the environment to use
+  # @param [ String ] command the command to invoke
+  # @param [ String ] args the argument string
+  def capture_without_interaction(env, command, args)
+    @railsmdb_out, @railsmdb_err, @railsmdb_status =
+      Open3.capture3(env, "#{command} #{args}")
+  end
+
+  # @return [ String ] the contents of the encrypted rails credential
+  #   file.
+  def credentials_file
+    Dir.chdir(containing_folder) do
+      `EDITOR=cat bin/rails credentials:edit 2>&1`
     end
   end
 end
