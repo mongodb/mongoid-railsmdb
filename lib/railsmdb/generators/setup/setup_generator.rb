@@ -57,7 +57,7 @@ module Railsmdb
 
       # Make sure the newly required gems are installed automatically.
       def run_bundle_install
-        say_status :run, "bundle install"
+        say_status :run, 'bundle install'
         system 'bundle install'
       end
 

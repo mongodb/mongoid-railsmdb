@@ -11,9 +11,7 @@ class WorkingDirectoryManager
   # Go back to the previous working directory. If no prior working directory
   # exists, raises an exception.
   def pop
-    if @stack.empty?
-      raise 'current at the top of the workdir stack; cannot go back farther'
-    end
+    raise 'currently at the top of the workdir stack; cannot go back farther' if @stack.empty?
 
     @stack.pop
   end
@@ -23,10 +21,7 @@ class WorkingDirectoryManager
   #
   # @param [ String ] path the path to push onto the stack
   def push(path)
-    unless path.start_with?('/')
-      path = File.expand_path(path, cwd)
-    end
-
+    path = File.expand_path(path, cwd) unless path.start_with?('/')
     @stack.push(path)
   end
 
@@ -45,8 +40,8 @@ class WorkingDirectoryManager
 
   # Invoke the given block after ensuring the current working directory
   # exists, and changing to that directory.
-  def execute(&block)
+  def execute
     FileUtils.mkdir_p(cwd)
-    Dir.chdir(cwd) { block.call(cwd) }
+    Dir.chdir(cwd) { yield cwd }
   end
 end

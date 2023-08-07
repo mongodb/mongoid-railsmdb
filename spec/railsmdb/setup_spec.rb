@@ -58,7 +58,7 @@ describe 'railsmdb setup' do
 
         within_folder app_name do
           when_running :railsmdb, 'setup', '-E',
-                        prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "no\n" } do
+                       prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "no\n" } do
             it_succeeds
 
             it_emits_file 'Gemfile', without: %w[ ffi libmongocrypt-helper ]
@@ -80,7 +80,7 @@ describe 'railsmdb setup' do
 
           within_folder app_name do
             when_running :railsmdb, 'setup', '-E',
-                        prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "yes\n" } do
+                         prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "yes\n" } do
               it_succeeds
 
               it_emits_file 'Gemfile', containing: %w[ ffi libmongocrypt-helper ]

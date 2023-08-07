@@ -29,12 +29,15 @@ def maybe_summarize(string, max_length: MAX_SUMMARY_LENGTH)
   end
 end
 
+PREFIX_PROJECT_ROOT = /^#{PROJECT_ROOT}/
+PREFIX_RAILSMDB_SANDBOX = /^#{RAILSMDB_SANDBOX}/
+
 # If the given command is an absolute path, strip out any prefix that
 # matches PROJECT_ROOT or RAILSMDB_SANDBOX.
 def abbreviate_command(command)
   command
-    .sub(/^#{PROJECT_ROOT}/, '[root]')
-    .sub(/^#{RAILSMDB_SANDBOX}/, '[sandbox]')
+    .sub(PREFIX_PROJECT_ROOT, '[root]')
+    .sub(PREFIX_RAILSMDB_SANDBOX, '[sandbox]')
 end
 
 # Normalize the command by looking for common macros that should be
@@ -60,7 +63,6 @@ def build_cmd_from_list(command, list)
   ].join(' ')
 end
 
-# rubocop:disable Lint/NestedMethodDefinition
 RSpec.configure do
   # Returns the WorkingDirectoryManager in use for the current suite.
   def working_directory
@@ -394,4 +396,3 @@ RSpec.configure do
     string.gsub(/\r\n|\r|\n/, ' ').gsub(/\s\s+/, ' ')
   end
 end
-# rubocop:enable Lint/NestedMethodDefinition
