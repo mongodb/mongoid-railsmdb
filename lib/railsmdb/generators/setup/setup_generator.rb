@@ -55,6 +55,12 @@ module Railsmdb
       public_task :mongoid_initializer
       public_task :railsmdb
 
+      # Make sure the newly required gems are installed automatically.
+      def run_bundle_install
+        say_status :run, "bundle install"
+        system 'bundle install'
+      end
+
       private
 
       # Infers the name of the app from the application's config/application.rb
@@ -92,7 +98,7 @@ module Railsmdb
         warn WARN_ABOUT_UNDO
         say
 
-        exit 1 if ask('Do you wish to proceed in the current branch?', limited_to: %w[ yes no ]) == 'no'
+        exit 0 if ask('Do you wish to proceed in the current branch?', limited_to: %w[ yes no ]) == 'no'
       end
 
       # Returns true if the current directory appears to be a Rails app.

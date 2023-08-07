@@ -5,11 +5,11 @@ require 'spec_helper'
 app_name = 'test_app'
 
 describe 'railsmdb generate model' do
-  when_running_railsmdb 'new', app_name do
+  when_running :railsmdb, 'new', app_name, clean: true do
     it_succeeds
 
     within_folder app_name do
-      when_running_bin_railsmdb 'generate', 'model', 'person' do
+      when_running :railsmdb, 'generate', 'model', 'person' do
         it_succeeds
 
         it_emits_file 'app/models/person.rb',
@@ -19,7 +19,7 @@ describe 'railsmdb generate model' do
         it_emits_file 'test/fixtures/people.yml'
       end
 
-      when_running_bin_railsmdb 'generate', 'model', 'student', '--parent=person' do
+      when_running :railsmdb, 'generate', 'model', 'student', '--parent=person' do
         it_succeeds
 
         it_emits_file 'app/models/student.rb',
@@ -29,7 +29,7 @@ describe 'railsmdb generate model' do
         it_emits_file 'test/fixtures/students.yml'
       end
 
-      when_running_bin_railsmdb 'generate', 'model', 'course', '--collection=classes' do
+      when_running :railsmdb, 'generate', 'model', 'course', '--collection=classes' do
         it_succeeds
 
         it_emits_file 'app/models/course.rb',
@@ -38,8 +38,8 @@ describe 'railsmdb generate model' do
         it_emits_file 'test/fixtures/courses.yml'
       end
 
-      when_running_bin_railsmdb 'generate', 'model', 'book', 'title:string',
-                                'started:time', 'good:boolean', 'review:text' do
+      when_running :railsmdb, 'generate', 'model', 'book', 'title:string',
+                   'started:time', 'good:boolean', 'review:text' do
         it_succeeds
 
         it_emits_file 'app/models/book.rb',
@@ -51,7 +51,7 @@ describe 'railsmdb generate model' do
                       ]
       end
 
-      when_running_bin_railsmdb 'generate', 'model', 'todo', '--no-timestamps' do
+      when_running :railsmdb, 'generate', 'model', 'todo', '--no-timestamps' do
         it_succeeds
 
         it_emits_file 'app/models/todo.rb',
