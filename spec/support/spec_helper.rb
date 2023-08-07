@@ -32,6 +32,33 @@ def build_args_from_list(list)
   list.map { |arg| arg.gsub(/[ !?&]/) { |m| "\\#{m}" } }.join(' ')
 end
 
+class WorkingDirectoryManager
+  def initialize(initial_path)
+    @initial_path = initial_path
+    @stack = []
+  end
+
+  def back
+    if @stack.empty?
+      raise 'current at the top of the workdir stack; cannot go back farther'
+    end
+
+    @stack.pop
+  end
+
+  def cd(path)
+    unless path.start_with?('/')
+      path = File.join(cwd, path)
+    end
+
+    @stack.push(path)
+  end
+
+  def cwd
+    @stack.last || @initial_path
+  end
+end
+
 # rubocop:disable Lint/NestedMethodDefinition
 RSpec.configure do
   # Returns the path to the given fixture.
@@ -71,7 +98,6 @@ RSpec.configure do
   #   `STDOUT.sync = true` in the invoked script.
   def when_running_railsmdb(*args, &block)
     opts = args.extract_options!
-
     FileUtils.mkdir_p RAILSMDB_SANDBOX
 
     Dir.chdir(RAILSMDB_SANDBOX) do
@@ -94,19 +120,16 @@ RSpec.configure do
     end
   end
 
-  # helper for declaring let() variables related to the invocation of
-  # the railsmdb command. The `railsmdb` variable returns the out and
-  # err streams, and the status as a 3-tuple. `railsmdb_out`,
-  # `railsmdb_err`, and `railsmdb_status` variables are available for
-  # convenience in accessing the elements of that tuple.
+  # helper for invoking railsmdb and capturing the result
   def invoke_railsmdb(command, args, from_path: nil, env: {}, prompts: {})
     before :context do
       Dir.chdir(from_path || containing_folder) do
-        if prompts.any?
-          capture_with_interaction(env, command, args, prompts)
-        else
-          capture_without_interaction(env, command, args)
-        end
+        results = if prompts.any?
+                    capture_with_interaction(env, command, args, prompts)
+                  else
+                    capture_without_interaction(env, command, args)
+                  end
+        @railsmdb_out, @railsmdb_err, @railsmdb_status = results
       end
     end
   end
@@ -120,6 +143,24 @@ RSpec.configure do
 
     context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
       invoke_railsmdb(RAILSMDB_FULL_PATH, arg_str, **opts)
+
+      class_exec(&block)
+    end
+  end
+
+  # Invokes the given command. The status, stdout and
+  # stderr and saved in the @command_status, @command_out, and @command_err
+  # variables.
+  def when_running_command(cmd, *args, &block)
+    arg_str = build_args_from_list(args)
+
+    context "when running `#{cmd} #{arg_str}`" do
+      before :context do
+        Dir.chdir(containing_folder) do
+          results = capture_without_interaction({}, cmd, arg_str)
+          @command_status, @command_out, @command_err = results
+        end
+      end
 
       class_exec(&block)
     end
@@ -162,14 +203,14 @@ RSpec.configure do
   # Tests that the `railsmdb_out` includes the argument
   def it_prints(output)
     it "prints #{maybe_summarize(output.inspect)}" do
-      expect(@railsmdb_out).to include(output)
+      expect(ignore_newlines(@railsmdb_out)).to include(output)
     end
   end
 
   # Tests that the `railsmdb_err` includes the argument
   def it_warns(output)
     it "warns #{maybe_summarize(output.inspect)}" do
-      expect(@railsmdb_err).to include(output)
+      expect(ignore_newlines(@railsmdb_err)).to include(output)
     end
   end
 
@@ -321,34 +362,33 @@ RSpec.configure do
   end
 
   # Runs the given command, with the given environment and arguments.
-  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
-  # and the status is saved (as @railsmdb_status). If any output matches
-  # any of the keys in `prompts`, the corresponding string will be written
-  # to stdin.
+  # If any output matches any of the keys in `prompts`, the corresponding
+  # string will be written to stdin.
   #
   # @param [ Hash ] env the environment to use
   # @param [ String ] command the command to invoke
   # @param [ String ] args the argument string
   # @param [ Hash ] prompts the prompts to interact with
+  #
+  # @return [ Array<String,String,Integer> ] the status, stdout, and stderr
+  #   returned as a 3-tuple.
   def capture_with_interaction(env, command, args, prompts)
     manager = ProcessInteractionManager.new(env, "#{command} #{args}", prompts)
     result = manager.run
 
-    @railsmdb_status = result[:status]
-    @railsmdb_out = result[:stdout]
-    @railsmdb_err = result[:stderr]
+    [ result[:stdout], result[:stderr], result[:status] ]
   end
 
   # Runs the given command, with the given environment and arguments.
-  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
-  # and the status is saved (as @railsmdb_status).
   #
   # @param [ Hash ] env the environment to use
   # @param [ String ] command the command to invoke
   # @param [ String ] args the argument string
+  #
+  # @return [ Array<String,String,Integer> ] the status, stdout, and stderr
+  #   returned as a 3-tuple.
   def capture_without_interaction(env, command, args)
-    @railsmdb_out, @railsmdb_err, @railsmdb_status =
-      Open3.capture3(env, "#{command} #{args}")
+    Open3.capture3(env, "#{command} #{args}")
   end
 
   # @return [ String ] the contents of the encrypted rails credential
@@ -357,6 +397,13 @@ RSpec.configure do
     Dir.chdir(containing_folder) do
       `EDITOR=cat bin/rails credentials:edit 2>&1`
     end
+  end
+
+  # Replaces all newlines and carriage returns in the given string with
+  # a single space, and then collapses sequences of two or more spaces to
+  # a single space.
+  def ignore_newlines(string)
+    string.gsub(/\r\n|\r|\n/, ' ').gsub(/\s\s+/, ' ')
   end
 end
 # rubocop:enable Lint/NestedMethodDefinition

@@ -11,11 +11,16 @@ require 'rails/generators/rails/app/app_generator'
 require 'digest'
 require 'mongoid'
 
-
 module Railsmdb
   module Generators
     module Setup
       module Concerns
+        # Tasks used for configuring a Rails app to use Mongoid, including
+        # adding support for encryption. This concern is shared between
+        # the app generator (e.g. `railsmdb new`) and the setup generator
+        # (e.g. `railsmdb setup`).
+        #
+        # @api private
         module Setuppable
           extend ActiveSupport::Concern
 
@@ -71,8 +76,8 @@ module Railsmdb
             # Add an option for accepting the customer agreement related to
             # MongoDB enterprise, allowing the acceptance prompt to be skipped.
             class_option :accept_customer_agreement, type: :boolean,
-                                                    default: false,
-                                                    desc: 'Accept the MongoDB Customer Agreement'
+                                                     default: false,
+                                                     desc: 'Accept the MongoDB Customer Agreement'
           end
 
           # Save the current directory; this way, we can see
@@ -467,10 +472,10 @@ module Railsmdb
                     'so'
                   end
 
-            # excuse the final #> at the end of the next line...this string
+            # excuse the final '# >'' at the end of the next line...this string
             # confuses vscode's syntax highlighter, and that final comment is
             # to shake it back to its senses...
-            %{"<%= Rails.root.join('vendor', 'crypt_shared', 'mongo_crypt_v1.#{ext}') %>"} #>
+            %{"<%= Rails.root.join('vendor', 'crypt_shared', 'mongo_crypt_v1.#{ext}') %>"} # >
           end
 
           # Attempts to insert the auto-encryption configuration into the given
@@ -514,8 +519,7 @@ module Railsmdb
             length = Regexp.last_match(0).length
 
             indent_size = contents[position..][/^\s*/].length
-            contents[position, length] = PRELOAD_MODELS_OPTION
-                                        .indent(indent_size)
+            contents[position, length] = PRELOAD_MODELS_OPTION.indent(indent_size)
 
             contents
           end

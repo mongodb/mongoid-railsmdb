@@ -32,9 +32,16 @@ module Railsmdb
 
       add_shebang_option!
 
+      # Make sure the current directory is an appropriate place to
+      # run this generator. It must:
+      #   - be the root directory of a Rails project
+      #   - not already have been set up with railsmdb
+      #
+      # Additionally, this will encourage the user to run this generator
+      # in a branch, in order to safely see what it does to their app.
       def ensure_proper_invocation
         ensure_rails_app!
-        ensure_not_railsmdb!
+        ensure_railsmdb_not_already_present!
         warn_about_undo!
       end
 
@@ -50,37 +57,58 @@ module Railsmdb
 
       private
 
+      # Infers the name of the app from the application's config/application.rb
+      # file.
+      #
+      # @return [ String ] the name of the application
       def app_name
         @app_name ||= File.read('config/application.rb').match(/module (\w+)/)[1].underscore
       end
 
+      # Warns and exits if the current directory is not the root of a
+      # Rails project.
       def ensure_rails_app!
         return if rails_app?
 
-        say NEED_RAILS_APP_WARNING
+        warn NEED_RAILS_APP_WARNING
         exit 1
       end
 
-      def ensure_not_railsmdb!
+      # Warns and exits if railsmdb is already present in the current
+      # Rails project.
+      def ensure_railsmdb_not_already_present!
         return unless railsmdb?
 
-        say ALREADY_HAS_RAILSMDB
+        warn ALREADY_HAS_RAILSMDB
         exit 1
       end
 
+      # Encourages the user to run this in a branch so that the changes
+      # may be easily rolled back.
+      #
+      # If the user chooses not to proceed, this method will exit the
+      # program.
       def warn_about_undo!
-        say WARN_ABOUT_UNDO
+        warn WARN_ABOUT_UNDO
         say
 
         exit 1 if ask('Do you wish to proceed in the current branch?', limited_to: %w[ yes no ]) == 'no'
       end
 
+      # Returns true if the current directory appears to be a Rails app.
+      #
+      # @return [ true | false ] if the current directory is a Rails app
+      #   or not.
       def rails_app?
         File.exist?('bin/rails') &&
           File.exist?('app') &&
           File.exist?('config')
       end
 
+      # Returns true if railsmdb appears to already be present in the
+      # current Rails app.
+      #
+      # @return [ true | false ] if railsmdb is already present.
       def railsmdb?
         File.exist?('bin/railsmdb')
       end

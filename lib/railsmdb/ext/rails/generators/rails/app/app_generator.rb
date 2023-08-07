@@ -8,8 +8,6 @@ module Rails
     # application.
     #
     # @api private
-    #
-    # rubocop:disable Metrics/ClassLength
     class AppGenerator
       include Railsmdb::Generators::Setup::Concerns::Setuppable
 
@@ -45,9 +43,6 @@ module Rails
       def create_db_files
         build(:db)
       end
-
-      private
     end
-    # rubocop:enable Metrics/ClassLength
   end
 end
