@@ -9,7 +9,7 @@ describe 'railsmdb dbconsole' do
   # Helper method for replacing the generated app's config/mongoid.yml file
   # with the given fixture file.
   def self.write_mongoid_yml_with(features)
-    before(:context) do
+    before :context do
       write_file(
         'config/mongoid.yml',
         fixture_from(:config, "mongoid_yml_with_#{features}")
@@ -17,7 +17,7 @@ describe 'railsmdb dbconsole' do
     end
   end
 
-  when_running_railsmdb 'new', app_name do
+  when_running :railsmdb, 'new', app_name, clean: true do
     it_succeeds
 
     within_folder app_name do
@@ -26,7 +26,7 @@ describe 'railsmdb dbconsole' do
 
         # we're replacing `mongosh` with `echo`, so we can confirm that the
         # command is run with the expected parameters.
-        when_running_bin_railsmdb 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
+        when_running :railsmdb, 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
           it_succeeds
           it_prints 'mongodb://host1.com:1234/test_app_development'
           it_warns 'no development configuration'
@@ -34,8 +34,7 @@ describe 'railsmdb dbconsole' do
       end
 
       context 'when mongosh is not installed' do
-        when_running_bin_railsmdb 'dbconsole',
-                                  env: { 'MONGOSH_CMD' => missing_program } do
+        when_running :railsmdb, 'dbconsole', env: { 'MONGOSH_CMD' => missing_program } do
           it_fails
           it_warns 'mongosh is not installed'
         end
@@ -44,7 +43,7 @@ describe 'railsmdb dbconsole' do
       context 'when mongoid.yml specifies a uri' do
         write_mongoid_yml_with(:uri)
 
-        when_running_bin_railsmdb 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
+        when_running :railsmdb, 'dbconsole', env: { 'MONGOSH_CMD' => 'echo' } do
           it_succeeds
           it_prints 'mongodb://user:password@mongodb.domain.com:27017/test_app_development'
         end

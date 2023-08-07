@@ -2,13 +2,17 @@
 
 require 'fileutils'
 require 'active_support/core_ext/array/extract_options'
-require 'support/process_interaction_manager'
+require 'process_interaction_manager'
+require 'working_directory_manager'
 
 PROJECT_ROOT = File.expand_path('../..', __dir__)
 RAILSMDB_CMD = 'railsmdb'
 RAILSMDB_FULL_PATH = File.join(PROJECT_ROOT, 'bin', RAILSMDB_CMD)
 RAILSMDB_SANDBOX = File.join(PROJECT_ROOT, 'tmp/railsmdb-sandbox')
 MAX_SUMMARY_LENGTH = 50
+
+MONGO_CUSTOMER_PROMPT = /I am a MongoDB customer.*=> \[yes, no\]/
+MONGO_SETUP_CONTINUE_PROMPT = /Do you wish to proceed/
 
 # helper function that will try to summarize the given string,
 # but keep it to the requested maximum length. If the string is too
@@ -25,15 +29,46 @@ def maybe_summarize(string, max_length: MAX_SUMMARY_LENGTH)
   end
 end
 
+PREFIX_PROJECT_ROOT = /^#{PROJECT_ROOT}/
+PREFIX_RAILSMDB_SANDBOX = /^#{RAILSMDB_SANDBOX}/
+
+# If the given command is an absolute path, strip out any prefix that
+# matches PROJECT_ROOT or RAILSMDB_SANDBOX.
+def abbreviate_command(command)
+  command
+    .sub(PREFIX_PROJECT_ROOT, '[root]')
+    .sub(PREFIX_RAILSMDB_SANDBOX, '[sandbox]')
+end
+
+# Normalize the command by looking for common macros that should be
+# expanded or replaced.
+#
+# @param [ String ] command the command to normalize
+#
+# @return [ String ] the normalized command
+def normalize_command(command)
+  case command
+  when :railsmdb then RAILSMDB_FULL_PATH
+  else command
+  end
+end
+
 # helper function that takes an array of command-line arguments and
 # joins them together into a single string, escaping characters as
 # necessary to make them safe for a (bash) command-line.
-def build_args_from_list(list)
-  list.map { |arg| arg.gsub(/[ !?&]/) { |m| "\\#{m}" } }.join(' ')
+def build_cmd_from_list(command, list)
+  [
+    command,
+    *list.map { |arg| arg.gsub(/[ !?&]/) { |m| "\\#{m}" } }
+  ].join(' ')
 end
 
-# rubocop:disable Lint/NestedMethodDefinition
 RSpec.configure do
+  # Returns the WorkingDirectoryManager in use for the current suite.
+  def working_directory
+    @working_directory ||= WorkingDirectoryManager.new(RAILSMDB_SANDBOX)
+  end
+
   # Returns the path to the given fixture.
   #
   # @param [ String | Symbol ] kind The type of the fixture (config, etc.)
@@ -59,85 +94,87 @@ RSpec.configure do
   # @param [ String ] relative_path The path, relative to the containing folder
   # @param [ String ] contents The contents of the file to write.
   def write_file(relative_path, contents)
-    File.write(File.join(containing_folder, relative_path), contents)
+    File.write(working_directory.join(relative_path), contents)
   end
 
-  # Begins a new context block for invoking the Railsmdb project's railsmdb
-  # script, and yields to the given block.
-  #
-  # @note When running this command with the `prompts` argument, you must make
-  #   sure that the process being invoked is run with output buffering
-  #   disabled. For Ruby programs, this means explicitly calling
-  #   `STDOUT.sync = true` in the invoked script.
-  def when_running_railsmdb(*args, &block)
-    opts = args.extract_options!
-
-    FileUtils.mkdir_p RAILSMDB_SANDBOX
-
-    Dir.chdir(RAILSMDB_SANDBOX) do
-      arg_str = build_args_from_list(args)
-
-      context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
-        def containing_folder
-          RAILSMDB_SANDBOX
-        end
-
-        before :context do
-          FileUtils.rm_rf RAILSMDB_SANDBOX
-          FileUtils.mkdir_p RAILSMDB_SANDBOX
-        end
-
-        invoke_railsmdb(RAILSMDB_FULL_PATH, arg_str, from_path: RAILSMDB_SANDBOX, **opts)
-
-        class_exec(&block)
+  # Declares a new context, and resets the railsmdb sandbox directory.
+  def clean_context(name, &block)
+    context name do
+      before :context do
+        FileUtils.rm_rf RAILSMDB_SANDBOX
       end
-    end
-  end
-
-  # helper for declaring let() variables related to the invocation of
-  # the railsmdb command. The `railsmdb` variable returns the out and
-  # err streams, and the status as a 3-tuple. `railsmdb_out`,
-  # `railsmdb_err`, and `railsmdb_status` variables are available for
-  # convenience in accessing the elements of that tuple.
-  def invoke_railsmdb(command, args, from_path: nil, env: {}, prompts: {})
-    before :context do
-      Dir.chdir(from_path || containing_folder) do
-        if prompts.any?
-          capture_with_interaction(env, command, args, prompts)
-        else
-          capture_without_interaction(env, command, args)
-        end
-      end
-    end
-  end
-
-  # Begins a new context block for invoking a Rails project's railsmdb
-  # script, and yields to the given block. It is assumed that the
-  # Rails project is the current directory.
-  def when_running_bin_railsmdb(*args, &block)
-    opts = args.extract_options!
-    arg_str = build_args_from_list(args)
-
-    context "when running `#{RAILSMDB_CMD} #{arg_str}`" do
-      invoke_railsmdb(RAILSMDB_FULL_PATH, arg_str, **opts)
 
       class_exec(&block)
     end
   end
 
-  # Tests that the `railsmdb_status` is zero.
+  # Invoke the given command, with the given arguments and environment. If
+  # any prompts are given, run the command interactively, responding to the
+  # given prompts with the corresponding replies.
+  #
+  # @param [ String ] command the command to run
+  # @param [ Array<String> ] args the arguments to provide to the command
+  # @param [ Hash<String,String> ] env the environment to use with the command
+  # @param [ true | false ] clean whether the sandbox ought to be wiped out or not
+  def when_running(command, *args, env: {}, prompts: {}, clean: false, &block)
+    command = normalize_command(command)
+    command = build_cmd_from_list(command, args)
+
+    context "when running `#{abbreviate_command(command)}`" do
+      before :context do
+        FileUtils.rm_rf RAILSMDB_SANDBOX if clean
+
+        working_directory.execute do
+          results = if prompts.any?
+                      capture_with_interaction(env, command, prompts)
+                    else
+                      capture_without_interaction(env, command)
+                    end
+
+          @stdout, @stderr, @status = results
+        end
+      end
+
+      class_exec(&block)
+    end
+  end
+
+  # Tests that the `@status` variable is zero.
   def it_succeeds
     it 'succeeds' do
-      expect(@railsmdb_status).to \
+      expect(@status).to \
         be == 0,
-        "status is #{@railsmdb_status}, stderr is #{@railsmdb_err.inspect}"
+        "status is #{@status}, stderr is #{@stderr.inspect}"
+    end
+  end
+
+  # Tests that the `@status` variable is not zero.
+  def it_fails
+    it 'fails' do
+      expect(@status).not_to \
+        be == 0,
+        "status is #{@status}, stdout is #{@stdout.inspect}"
+    end
+  end
+
+  # Tests that the `@stdout` variable includes the argument
+  def it_prints(output)
+    it "prints #{maybe_summarize(output.inspect)}" do
+      expect(ignore_newlines(@stdout)).to include(output)
+    end
+  end
+
+  # Tests that the `@stderr` variable includes the argument
+  def it_warns(output)
+    it "warns #{maybe_summarize(output.inspect)}" do
+      expect(ignore_newlines(@stderr)).to include(output)
     end
   end
 
   # Tests that the given key exists in the encrypted credentials file
   def it_stores_credentials_for(key)
     it "stores credentials for #{key.inspect}" do
-      Dir.chdir(containing_folder) do
+      working_directory.execute do
         expect(credentials_file).to match(/^#{key}: /)
       end
     end
@@ -146,30 +183,9 @@ RSpec.configure do
   # Tests that the given key does not exist in the encrypted credentials file
   def it_does_not_store_credentials_for(key)
     it "does not store credentials for #{key.inspect}" do
-      Dir.chdir(containing_folder) do
+      working_directory.execute do
         expect(credentials_file).not_to match(/^#{key}: /)
       end
-    end
-  end
-
-  # Tests that the `railsmdb_status` is not zero.
-  def it_fails
-    it 'fails' do
-      expect(@railsmdb_status).not_to be == 0
-    end
-  end
-
-  # Tests that the `railsmdb_out` includes the argument
-  def it_prints(output)
-    it "prints #{maybe_summarize(output.inspect)}" do
-      expect(@railsmdb_out).to include(output)
-    end
-  end
-
-  # Tests that the `railsmdb_err` includes the argument
-  def it_warns(output)
-    it "warns #{maybe_summarize(output.inspect)}" do
-      expect(@railsmdb_err).to include(output)
     end
   end
 
@@ -265,10 +281,25 @@ RSpec.configure do
     end
   end
 
+  # Tests that the file at the given path (relative to the
+  # current directory) is not link.
+  def it_does_not_link_file(path)
+    file_at(path) do
+      it_is_not_a_link
+    end
+  end
+
   # Tests that the file at the `full_path` let variable is a link.
   def it_is_a_link
     it 'is a link' do
       expect(File.symlink?(full_path)).to be true
+    end
+  end
+
+  # Tests that the file at the `full_path` let variable is not a link.
+  def it_is_not_a_link
+    it 'is not a link' do
+      expect(File.symlink?(full_path)).to be false
     end
   end
 
@@ -279,7 +310,7 @@ RSpec.configure do
       if to.start_with?('/')
         to
       else
-        File.join(containing_folder, to)
+        working_directory.join(to)
       end
     end
 
@@ -292,7 +323,7 @@ RSpec.configure do
   # containing the fully-qualified path.
   def entry_at(path, type: 'file', &block)
     context "#{type} '#{path}'" do
-      let(:full_path) { File.join(containing_folder, path) }
+      let(:full_path) { working_directory.join(path) }
       let(:file_contents) { File.read(full_path) }
 
       class_exec(&block)
@@ -309,54 +340,59 @@ RSpec.configure do
   # Opens a context block and declares a `containing_folder` let variable
   # containing the fully-qualified path.
   def within_folder(path, &block)
-    FileUtils.mkdir_p path
-
-    Dir.chdir path do
-      context "and, under '#{path}'" do
-        define_method(:containing_folder) { File.join(super(), path) }
-
-        class_exec(&block)
+    context "and, under '#{path}'" do
+      before(:context) do
+        working_directory.push path
       end
+
+      after(:context) do
+        working_directory.pop
+      end
+
+      class_exec(&block)
     end
   end
 
   # Runs the given command, with the given environment and arguments.
-  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
-  # and the status is saved (as @railsmdb_status). If any output matches
-  # any of the keys in `prompts`, the corresponding string will be written
-  # to stdin.
+  # If any output matches any of the keys in `prompts`, the corresponding
+  # string will be written to stdin.
   #
   # @param [ Hash ] env the environment to use
   # @param [ String ] command the command to invoke
-  # @param [ String ] args the argument string
   # @param [ Hash ] prompts the prompts to interact with
-  def capture_with_interaction(env, command, args, prompts)
-    manager = ProcessInteractionManager.new(env, "#{command} #{args}", prompts)
+  #
+  # @return [ Array<String,String,Integer> ] the status, stdout, and stderr
+  #   returned as a 3-tuple.
+  def capture_with_interaction(env, command, prompts)
+    manager = ProcessInteractionManager.new(env, command, prompts)
     result = manager.run
 
-    @railsmdb_status = result[:status]
-    @railsmdb_out = result[:stdout]
-    @railsmdb_err = result[:stderr]
+    [ result[:stdout], result[:stderr], result[:status] ]
   end
 
   # Runs the given command, with the given environment and arguments.
-  # The stderr and stdout are captured (as @railsmdb_err and @railsmdb_out),
-  # and the status is saved (as @railsmdb_status).
   #
   # @param [ Hash ] env the environment to use
   # @param [ String ] command the command to invoke
-  # @param [ String ] args the argument string
-  def capture_without_interaction(env, command, args)
-    @railsmdb_out, @railsmdb_err, @railsmdb_status =
-      Open3.capture3(env, "#{command} #{args}")
+  #
+  # @return [ Array<String,String,Integer> ] the status, stdout, and stderr
+  #   returned as a 3-tuple.
+  def capture_without_interaction(env, command)
+    Open3.capture3(env, command)
   end
 
   # @return [ String ] the contents of the encrypted rails credential
   #   file.
   def credentials_file
-    Dir.chdir(containing_folder) do
+    working_directory.execute do
       `EDITOR=cat bin/rails credentials:edit 2>&1`
     end
   end
+
+  # Replaces all newlines and carriage returns in the given string with
+  # a single space, and then collapses sequences of two or more spaces to
+  # a single space.
+  def ignore_newlines(string)
+    string.gsub(/\r\n|\r|\n/, ' ').gsub(/\s\s+/, ' ')
+  end
 end
-# rubocop:enable Lint/NestedMethodDefinition
