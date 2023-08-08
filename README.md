@@ -51,6 +51,19 @@ $ railsmdb -h
 ```
 
 
+### Setting up railsmdb and Mongoid in an established Rails app
+
+If you want to add `railsmdb` to an existing (non-Mongoid) Rails app, and add Mongoid configuration as well, you can use `railsmdb setup`:
+
+```
+$ railsmdb setup
+```
+
+This must be run from the root directory of a Rails project. It will replace `bin/rails` with `bin/railsmdb`, add the `mongoid.yml` configuration file and the `mongoid.rb` initializer, and add the necessary gem entries to the `Gemfile`.
+
+**Note:** it is recommended to run this command in a branch, so that you can easily experiment with the changes and roll them back if necessary.
+
+
 ### Generating Mongoid models
 
 You can use `railsmdb` to generate stubs for new Mongoid models. From within a project:
