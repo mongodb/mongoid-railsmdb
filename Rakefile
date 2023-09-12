@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength
+
 require 'bundler'
 require 'bundler/gem_tasks'
 require 'rubygems/package'
@@ -11,7 +13,7 @@ require_relative './lib/railsmdb/version'
 def signed_gem?(path_to_gem)
   Gem::Package.new(path_to_gem, Gem::Security::HighSecurity).verify
   true
-rescue Gem::Security::Exception => e
+rescue Gem::Security::Exception
   false
 end
 
@@ -24,16 +26,12 @@ task default: %i[ spec ]
 Rake::Task['release'].clear
 
 desc 'Release mongoid-railsmdb gem'
-task release: %w[ release:require_private_key clobber build release:verify release:tag release:publish ] do
-  puts 'here'
-end
+task release: %w[ release:require_private_key clobber build release:verify release:tag release:publish ]
 
 namespace :release do
   desc 'Requires the private key to be present'
   task :require_private_key do
-    unless File.exist?('gem-private_key.pem')
-      raise "No private key present, cannot release"
-    end
+    raise 'No private key present, cannot release' unless File.exist?('gem-private_key.pem')
   end
 
   desc 'Verifies that all built gems in pkg/ are valid'
@@ -63,3 +61,5 @@ namespace :release do
     system "gem push pkg/mongoid-railsmdb-#{Railsmdb::Version::STRING}.gem"
   end
 end
+
+# rubocop:enable Metrics/BlockLength
