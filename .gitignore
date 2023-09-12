@@ -1,3 +1,5 @@
 Gemfile.lock
 tmp
 .current.json
+gem-private_key.pem
+pkg
