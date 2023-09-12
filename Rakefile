@@ -53,7 +53,7 @@ namespace :release do
   desc 'Creates a new tag for the current version'
   task :tag do
     system "git tag -a v#{Railsmdb::Version::STRING} -m 'Tagging release: #{Railsmdb::Version::STRING}'"
-    system "git push origin v#{Railsmdb::Version::STRING}"
+    system "git push upstream v#{Railsmdb::Version::STRING}"
   end
 
   desc 'Publishes the most recently built gem'
