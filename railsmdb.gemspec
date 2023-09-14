@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = Railsmdb::Version::STRING
   s.authors     = [ 'The MongoDB Ruby Team' ]
   s.email       = 'dbx-ruby@mongodb.com'
-  s.homepage    = ''
+  s.homepage    = 'https://github.com/mongodb/mongoid-railsmdb'
   s.summary     = 'CLI for creating and managing Rails projects that use Mongoid'
   s.description = 'A CLI for assisting Rails programmers in creating and ' \
                   'managing Rails projects that use Mongoid and MongoDB as ' \
@@ -21,8 +21,8 @@ Gem::Specification.new do |s|
     'rubygems_mfa_required' => 'true',
     'bug_tracker_uri' => 'https://jira.mongodb.org/projects/MONGOID',
     'changelog_uri' => 'https://github.com/mongodb/mongoid-railsmdb/releases',
-    # 'documentation_uri' => '',
-    # 'homepage_uri' => '',
+    'documentation_uri' => 'https://github.com/mongodb/mongoid-railsmdb/blob/v1.0.0.alpha1/README.md',
+    'homepage_uri' => 'https://github.com/mongodb/mongoid-railsmdb',
     'source_code_uri' => 'https://github.com/mongodb/mongoid-railsmdb'
   }
 
