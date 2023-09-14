@@ -206,7 +206,7 @@ module Railsmdb
               path = @initial_path
 
               while path != '/'
-                break if File.exist?(File.join(path, 'mongoid-railsmdb.gemspec'))
+                break if File.exist?(File.join(path, 'railsmdb.gemspec'))
 
                 path = File.dirname(path)
               end
@@ -281,12 +281,12 @@ module Railsmdb
           def railsmdb_gem_entry
             if railsmdb_project_directory.present?
               GemfileEntry.path \
-                'mongoid-railsmdb',
+                'railsmdb',
                 railsmdb_project_directory,
                 'The development version of railsmdb'
             else
               GemfileEntry.version \
-                'mongoid-railsmdb',
+                'railsmdb',
                 Railsmdb::Version::STRING,
                 'The Rails CLI tool for MongoDB'
             end
