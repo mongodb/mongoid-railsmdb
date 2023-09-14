@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'railsmdb/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'mongoid-railsmdb'
+  s.name        = 'railsmdb'
   s.version     = Railsmdb::Version::STRING
   s.authors     = [ 'The MongoDB Ruby Team' ]
   s.email       = 'dbx-ruby@mongodb.com'

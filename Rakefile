@@ -25,7 +25,7 @@ task default: %i[ spec ]
 
 Rake::Task['release'].clear
 
-desc 'Release mongoid-railsmdb gem'
+desc 'Release railsmdb gem'
 task release: %w[ release:require_private_key clobber build release:verify release:tag release:publish ]
 
 namespace :release do
@@ -58,7 +58,7 @@ namespace :release do
 
   desc 'Publishes the most recently built gem'
   task :publish do
-    system "gem push pkg/mongoid-railsmdb-#{Railsmdb::Version::STRING}.gem"
+    system "gem push pkg/railsmdb-#{Railsmdb::Version::STRING}.gem"
   end
 end
 
