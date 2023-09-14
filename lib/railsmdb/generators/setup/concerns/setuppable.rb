@@ -205,13 +205,13 @@ module Railsmdb
             @railsmdb_project_directory ||= begin
               path = @initial_path
 
-              while path != '/'
-                break if File.exist?(File.join(path, 'mongoid-railsmdb.gemspec'))
+              while path != '.'
+                break if File.exist?(File.join(path, 'railsmdb.gemspec'))
 
                 path = File.dirname(path)
               end
 
-              (path == '/') ? nil : path
+              (path == '.') ? nil : path
             end
           end
 

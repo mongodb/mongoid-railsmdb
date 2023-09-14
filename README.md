@@ -4,6 +4,17 @@ Railsmdb is a command-line utility for creating, updating, managing,
 and maintaining Rails applications that use Mongoid and MongoDB for data storage. It is an extension of (and supports all other functionality of) the `rails` command from Ruby on Rails.
 
 
+## Installation
+
+To install Railsmdb:
+
+```
+$ gem install railsmdb
+```
+
+This will install a new command, `railsmdb`.
+
+
 ## Usage
 
 The `railsmdb` command may be invoked exactly as you would invoke the `rails` command. For example, to create a new Rails app:
