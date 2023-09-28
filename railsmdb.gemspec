@@ -31,8 +31,10 @@ Gem::Specification.new do |s|
     s.cert_chain  = [ 'gem-public_cert.pem' ]
   end
 
-  s.files  = %w[ LICENSE README.md Rakefile ]
-  s.files += Dir.glob('lib/**/*')
+  s.files  = %w[ LICENSE README.md ]
+  s.files += Dir.glob('{bin,lib}/**/*')
+
+  s.executables << 'railsmdb'
 
   s.add_dependency 'rails', '~> 7.0'
   s.add_dependency 'os', '~> 1.1'
