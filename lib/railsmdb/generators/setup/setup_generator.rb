@@ -3,6 +3,11 @@
 require 'rails/generators/base'
 require 'railsmdb/generators/setup/concerns/setuppable'
 
+if ENV['RAILSMDB_SYNC_IO'] == '1'
+  $stderr.sync = true
+  $stdout.sync = true
+end
+
 module Railsmdb
   module Generators
     # The implementation of the setup generator for Railsmdb, for

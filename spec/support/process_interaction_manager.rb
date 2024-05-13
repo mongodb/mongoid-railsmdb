@@ -38,6 +38,8 @@ class ProcessInteractionManager
   #   process. The :stdout and :stderr keys reference strings, and
   #   the :status key references an integer.
   def run
+    env['RAILSMDB_SYNC_IO'] = '1'
+
     Open3.popen3(env, command) do |stdin, stdout, stderr, wait_thr|
       buffers = { stdout => [], stderr => [] }
 
