@@ -29,7 +29,9 @@ class ProcessInteractionManager
   def initialize(env, command, prompts)
     @env = env || {}
     @command = command
-    @prompts = prompts
+
+    # dup, because prompts will be removed from this hash as they are matched.
+    @prompts = prompts.dup
   end
 
   # Invoke the command.
@@ -75,8 +77,13 @@ class ProcessInteractionManager
       buffer = buffers[reader]
       buffer << reader.readpartial(4096)
 
-      prompts.each do |prompt, reply|
-        stdin.write(reply) if buffer.last.match?(prompt)
+      prompts.keys.each do |prompt|
+        if buffer.last.match?(prompt)
+          stdin.write(prompts[prompt])
+
+          # only match each prompt once, to avoid duplicate responses
+          prompts.delete(prompt)
+        end
       end
     end
 
