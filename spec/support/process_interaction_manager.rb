@@ -43,7 +43,7 @@ class ProcessInteractionManager
     env['RAILSMDB_SYNC_IO'] = '1'
 
     Open3.popen3(env, command) do |stdin, stdout, stderr, wait_thr|
-      buffers = { stdout => String.new, stderr => String.new }
+      buffers = { stdout => +'', stderr => +'' }
 
       loop do
         readers, = IO.select([ stdout, stderr ])
@@ -77,13 +77,13 @@ class ProcessInteractionManager
       buffer = buffers[reader]
       buffer << reader.readpartial(4096)
 
-      prompts.keys.each do |prompt|
-        if buffer.match?(prompt)
-          stdin.write(prompts[prompt])
+      prompts.each_key do |prompt|
+        next unless buffer.match?(prompt)
 
-          # only match each prompt once, to avoid duplicate responses
-          prompts.delete(prompt)
-        end
+        stdin.write(prompts[prompt])
+
+        # only match each prompt once, to avoid duplicate responses
+        prompts.delete(prompt)
       end
     end
 

@@ -5,7 +5,7 @@ on: [ push, pull_request ]
 
 jobs:
   build:
-    name: "${{matrix.ruby}} mongoid-${{matrix.mongoid}}"
+    name: "${{matrix.ruby}} mongoid-${{matrix.mongoid}} rails-${{matrix.rails}}"
     env:
       CI: true
     runs-on: "${{matrix.os}}"
