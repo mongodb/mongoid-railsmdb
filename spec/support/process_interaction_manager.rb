@@ -43,7 +43,7 @@ class ProcessInteractionManager
     env['RAILSMDB_SYNC_IO'] = '1'
 
     Open3.popen3(env, command) do |stdin, stdout, stderr, wait_thr|
-      buffers = { stdout => [], stderr => [] }
+      buffers = { stdout => String.new, stderr => String.new }
 
       loop do
         readers, = IO.select([ stdout, stderr ])
@@ -51,8 +51,8 @@ class ProcessInteractionManager
       end
 
       {
-        stdout: buffers[stdout].join,
-        stderr: buffers[stderr].join,
+        stdout: buffers[stdout],
+        stderr: buffers[stderr],
         status: wait_thr.value.exitstatus
       }
     end
@@ -66,7 +66,7 @@ class ProcessInteractionManager
   # stdin.
   #
   # @param [ Array<IO> | nil ] readers the readers that ought to be checked.
-  # @param [ Hash<IO,Array> ] buffers the mapping of IO to array where the
+  # @param [ Hash<IO,String> ] buffers the mapping of IO to array where the
   #   output should be recorded.
   # @param [ IO ] stdin the stdin stream for sending replies to the process
   #
@@ -78,7 +78,7 @@ class ProcessInteractionManager
       buffer << reader.readpartial(4096)
 
       prompts.keys.each do |prompt|
-        if buffer.last.match?(prompt)
+        if buffer.match?(prompt)
           stdin.write(prompts[prompt])
 
           # only match each prompt once, to avoid duplicate responses

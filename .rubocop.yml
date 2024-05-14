@@ -12,10 +12,6 @@ AllCops:
     - 'tmp/**/*'
     - 'test-apps/**/*'
 
-# -----------------------------------
-# TODO: Enable and fix the cops below
-# -----------------------------------
-
 Gemspec:
   Enabled: true
 
