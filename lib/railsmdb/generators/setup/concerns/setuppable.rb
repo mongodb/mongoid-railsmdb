@@ -255,20 +255,10 @@ module Railsmdb
           # @return [ Rails::Generators::AppBase::GemfileEntry ] the gem
           #   entry for Mongoid.
           def mongoid_gem_entry
-            if @okay_to_support_encryption && ::Mongoid::VERSION < '9.0'
-              # FIXME: once Mongoid 9.0 is released, update this so that it
-              # uses that released version.
-              GemfileEntry.github \
-                'mongoid',
-                'mongodb/mongoid',
-                'master',
-                'Encryption requires an unreleased version of Mongoid'
-            else
-              GemfileEntry.version \
-                'mongoid',
-                ::Mongoid::VERSION,
-                'Use MongoDB for the database, with Mongoid as the ODM'
-            end
+            GemfileEntry.version \
+              'mongoid',
+              ::Mongoid::VERSION,
+              'Use MongoDB for the database, with Mongoid as the ODM'
           end
 
           # The gem entry for the Railsmdb gem. If run from a railsmdb

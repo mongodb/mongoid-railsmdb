@@ -29,7 +29,9 @@ class ProcessInteractionManager
   def initialize(env, command, prompts)
     @env = env || {}
     @command = command
-    @prompts = prompts
+
+    # dup, because prompts will be removed from this hash as they are matched.
+    @prompts = prompts.dup
   end
 
   # Invoke the command.
@@ -38,8 +40,10 @@ class ProcessInteractionManager
   #   process. The :stdout and :stderr keys reference strings, and
   #   the :status key references an integer.
   def run
+    env['RAILSMDB_SYNC_IO'] = '1'
+
     Open3.popen3(env, command) do |stdin, stdout, stderr, wait_thr|
-      buffers = { stdout => [], stderr => [] }
+      buffers = { stdout => +'', stderr => +'' }
 
       loop do
         readers, = IO.select([ stdout, stderr ])
@@ -47,8 +51,8 @@ class ProcessInteractionManager
       end
 
       {
-        stdout: buffers[stdout].join,
-        stderr: buffers[stderr].join,
+        stdout: buffers[stdout],
+        stderr: buffers[stderr],
         status: wait_thr.value.exitstatus
       }
     end
@@ -62,7 +66,7 @@ class ProcessInteractionManager
   # stdin.
   #
   # @param [ Array<IO> | nil ] readers the readers that ought to be checked.
-  # @param [ Hash<IO,Array> ] buffers the mapping of IO to array where the
+  # @param [ Hash<IO,String> ] buffers the mapping of IO to array where the
   #   output should be recorded.
   # @param [ IO ] stdin the stdin stream for sending replies to the process
   #
@@ -73,8 +77,13 @@ class ProcessInteractionManager
       buffer = buffers[reader]
       buffer << reader.readpartial(4096)
 
-      prompts.each do |prompt, reply|
-        stdin.write(reply) if buffer.last.match?(prompt)
+      prompts.each_key do |prompt|
+        next unless buffer.match?(prompt)
+
+        stdin.write(prompts[prompt])
+
+        # only match each prompt once, to avoid duplicate responses
+        prompts.delete(prompt)
       end
     end
 

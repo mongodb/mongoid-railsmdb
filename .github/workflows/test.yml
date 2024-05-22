@@ -5,15 +5,16 @@ on: [ push, pull_request ]
 
 jobs:
   build:
-    name: "${{matrix.ruby}} mongoid-${{matrix.mongoid}}"
+    name: "${{matrix.ruby}} mongoid-${{matrix.mongoid}} rails-${{matrix.rails}}"
     env:
       CI: true
     runs-on: "${{matrix.os}}"
     strategy:
       fail-fast: false
       matrix:
-        mongoid: [ '8.1' ]
-        ruby: [ 'ruby-3.0', 'ruby-3.1', 'ruby-3.2' ]
+        mongoid: [ '8.0', '8.1', '9.0' ]
+        ruby: [ 'ruby-3.0', 'ruby-3.1', 'ruby-3.2', 'ruby-3.3' ]
+        rails: [ '7.0', '7.1' ]
         os: [ ubuntu-latest ]
     steps:
       - name: repo checkout
@@ -25,6 +26,12 @@ jobs:
           bundler: 2
       - name: bundle
         run: bundle install --jobs 4 --retry 3
+        env:
+          RAILSMDB_MONGOID_VERSION: ${{ matrix.mongoid }}
+          RAILSMDB_RAILS_VERSION: ${{ matrix.rails }}
       - name: test
         timeout-minutes: 60
         run: bundle exec rake spec
+        env:
+          RAILSMDB_MONGOID_VERSION: ${{ matrix.mongoid }}
+          RAILSMDB_RAILS_VERSION: ${{ matrix.rails }}

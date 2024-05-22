@@ -36,12 +36,22 @@ Gem::Specification.new do |s|
 
   s.executables << 'railsmdb'
 
-  s.add_dependency 'rails', '~> 7.0'
+  if ENV['RAILSMDB_RAILS_VERSION']
+    s.add_dependency 'rails', "~> #{ENV['RAILSMDB_RAILS_VERSION']}.0"
+  else
+    s.add_dependency 'rails', '~> 7.0'
+  end
+
   s.add_dependency 'os', '~> 1.1'
   s.add_dependency 'faraday', '~> 2.7'
   s.add_dependency 'minitar', '~> 0.9'
   s.add_dependency 'rubyzip', '~> 2.3'
-  s.add_dependency 'mongoid', '>= 8.0'
+
+  if ENV['RAILSMDB_MONGOID_VERSION']
+    s.add_dependency 'mongoid', "~> #{ENV['RAILSMDB_MONGOID_VERSION']}.0"
+  else
+    s.add_dependency 'mongoid', '>= 8.0'
+  end
 
   s.required_ruby_version = '>= 3.0'
 end
