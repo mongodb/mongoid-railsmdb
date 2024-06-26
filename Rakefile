@@ -19,6 +19,7 @@ task :version do
   puts Railsmdb::Version::STRING
 end
 
+desc 'Warns that `rake build` is not used in this project.'
 task :build do
   abort <<~WARNING
     `rake build` is not used in this project. The gem must be built via the
@@ -31,6 +32,7 @@ end
 # builds the gem. Our release process assumes the gem has already
 # been built (and signed via GPG), so we just need `rake release` to
 # push the gem to rubygems.
+desc 'Used internally by the release process to push the gem to RubyGems'
 task :release do
   require_relative 'lib/railsmdb/version'
 
