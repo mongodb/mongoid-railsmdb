@@ -1,21 +1,9 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
-
 require 'bundler'
-require 'bundler/gem_tasks'
 require 'rubygems/package'
 require 'rubygems/security'
 require 'rspec/core/rake_task'
-
-require_relative './lib/railsmdb/version'
-
-def signed_gem?(path_to_gem)
-  Gem::Package.new(path_to_gem, Gem::Security::HighSecurity).verify
-  true
-rescue Gem::Security::Exception
-  false
-end
 
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = %w[ -I lib -I spec/support --format documentation ]
@@ -23,43 +11,44 @@ end
 
 task default: %i[ spec ]
 
-Rake::Task['release'].clear
-
-desc 'Release railsmdb gem'
-task release: %w[ release:require_private_key clobber build release:verify release:tag release:publish ]
-
-namespace :release do
-  desc 'Requires the private key to be present'
-  task :require_private_key do
-    raise 'No private key present, cannot release' unless File.exist?('gem-private_key.pem')
-  end
-
-  desc 'Verifies that all built gems in pkg/ are valid'
-  task :verify do
-    gems = Dir['pkg/*.gem']
-    if gems.empty?
-      puts 'There are no gems in pkg/ to verify'
-    else
-      gems.each do |gem|
-        if signed_gem?(gem)
-          puts "#{gem} is signed"
-        else
-          abort "#{gem} is not signed"
-        end
-      end
-    end
-  end
-
-  desc 'Creates a new tag for the current version'
-  task :tag do
-    system "git tag -a v#{Railsmdb::Version::STRING} -m 'Tagging release: #{Railsmdb::Version::STRING}'"
-    system "git push upstream v#{Railsmdb::Version::STRING}"
-  end
-
-  desc 'Publishes the most recently built gem'
-  task :publish do
-    system "gem push pkg/railsmdb-#{Railsmdb::Version::STRING}.gem"
-  end
+# This task is used by the release process, but must do nothing except
+# print the version number defined by Railsmdb::Version::STRING.
+desc 'Prints the version number defined in Railsmdb::Version::STRING'
+task :version do
+  require_relative 'lib/railsmdb/version'
+  puts Railsmdb::Version::STRING
 end
 
-# rubocop:enable Metrics/BlockLength
+desc 'Warns that `rake build` is not used in this project.'
+task :build do
+  abort <<~WARNING
+    `rake build` is not used in this project. The gem must be built via the
+    "RailsMDB Release" action in GitHub, which is triggered manually when a
+    release is ready to publish.
+  WARNING
+end
+
+# replaces the default Bundler-provided `release` task, which also
+# builds the gem. Our release process assumes the gem has already
+# been built (and signed via GPG), so we just need `rake release` to
+# push the gem to rubygems.
+desc 'Used internally by the release process to push the gem to RubyGems'
+task :release do
+  require_relative 'lib/railsmdb/version'
+
+  if ENV['GITHUB_ACTION'].nil?
+    abort <<~WARNING
+      `rake release` must be invoked from the `RailsMDB Release` GitHub action,
+      and must not be invoked locally. This ensures the gem is properly signed
+      and distributed by the appropriate user.
+
+      Note that it is the `rubygems/release-gem@v1` step in the `RailsMDB Release`
+      action that invokes this task. Do not rename or remove this task, or the
+      release-gem step will fail. Reimplement this task with caution.
+
+      railsmdb-#{Railsmdb::Version::STRING}.gem was NOT pushed to RubyGems.
+    WARNING
+  end
+
+  system 'gem', 'push', "railsmdb-#{Railsmdb::Version::STRING}.gem"
+end
