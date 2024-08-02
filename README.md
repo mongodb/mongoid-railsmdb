@@ -6,14 +6,16 @@ and maintaining Rails applications that use Mongoid and MongoDB for data storage
 
 ## Installation
 
+> [!NOTE]  
+> Note that until Railsmdb 1.0.0 final is released the `--pre` flag will be required for installation
+> 
 To install Railsmdb:
 
 ```
-$ gem install railsmdb
+$ gem install railsmdb --pre
 ```
 
 This will install a new command, `railsmdb`.
-
 
 ## Usage
 
