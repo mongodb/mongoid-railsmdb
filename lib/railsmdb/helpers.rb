@@ -23,38 +23,38 @@ module Railsmdb
     CREDENTIALS_FILE_PATH = 'config/credentials.yml.enc'
 
     KEY_VAULT_CONFIG = <<~CONFIG
-    # This client is used to obtain the encryption keys from the key vault.
-    # For security reasons, this should be a different database instance than
-    # your primary application database.
-    key_vault:
-      uri: mongodb://localhost:27017
+      # This client is used to obtain the encryption keys from the key vault.
+      # For security reasons, this should be a different database instance than
+      # your primary application database.
+      key_vault:
+        uri: mongodb://localhost:27017
 
     CONFIG
 
     AUTO_ENCRYPTION_CONFIG = <<~CONFIG.freeze
-    # You can read about the auto encryption options here:
-    # https://www.mongodb.com/docs/ruby-driver/v#{Mongo::VERSION.split('.').first(2).join('.')}/reference/in-use-encryption/client-side-encryption/#auto-encryption-options
-    auto_encryption_options:
-      key_vault_client: 'key_vault'
-      key_vault_namespace: 'encryption.__keyVault'
-      kms_providers:
-        # Using a local master key is insecure and is not recommended if you plan
-        # to use client-side encryption in production.
-        #
-        # To learn how to set up a remote Key Management Service, see the tutorials
-        # at https://www.mongodb.com/docs/manual/core/csfle/tutorials/.
-        local:
-          key: '<%= Rails.application.credentials.mongodb_master_key %>'
-      extra_options:
-        crypt_shared_lib_path: %crypt-shared-path%
+      # You can read about the auto encryption options here:
+      # https://www.mongodb.com/docs/ruby-driver/v#{Mongo::VERSION.split('.').first(2).join('.')}/reference/in-use-encryption/client-side-encryption/#auto-encryption-options
+      auto_encryption_options:
+        key_vault_client: 'key_vault'
+        key_vault_namespace: 'encryption.__keyVault'
+        kms_providers:
+          # Using a local master key is insecure and is not recommended if you plan
+          # to use client-side encryption in production.
+          #
+          # To learn how to set up a remote Key Management Service, see the tutorials
+          # at https://www.mongodb.com/docs/manual/core/csfle/tutorials/.
+          local:
+            key: '<%= Rails.application.credentials.mongodb_master_key %>'
+        extra_options:
+          crypt_shared_lib_path: %crypt-shared-path%
 
     CONFIG
 
     PRELOAD_MODELS_OPTION = <<~CONFIG
-    #
-    # Setting it to true is recommended for auto encryption to work
-    # properly in development.
-    preload_models: true
+      #
+      # Setting it to true is recommended for auto encryption to work
+      # properly in development.
+      preload_models: true
     CONFIG
 
     # Declare the mongoid gem as a dependency.

@@ -5,7 +5,10 @@
 # argument to the `--template` option of `rails new`.
 
 require 'railsmdb/helpers'
+
+# rubocop:disable Style/MixinUsage
 extend Railsmdb::Helpers
+# rubocop:enable Style/MixinUsage
 
 source_paths.unshift File.join(__dir__, 'generators', 'setup', 'templates')
 

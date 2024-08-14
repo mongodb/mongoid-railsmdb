@@ -71,9 +71,9 @@ module Railsmdb
 
       def run_bundle
         say_status :run, 'bundle install'
-        cmd = "#{Gem.ruby} #{Gem.bin_path("bundler", "bundle")} install --quiet"
+        cmd = "#{Gem.ruby} #{Gem.bin_path('bundler', 'bundle')} install --quiet"
 
-        require "bundler"
+        require 'bundler'
         Bundler.with_original_env { system(cmd) }
       end
 
