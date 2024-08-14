@@ -24,6 +24,10 @@ jobs:
         with:
           ruby-version: "${{matrix.ruby}}"
           bundler: 2
+      # Fix GEM_HOME perms (see https://github.com/actions/runner-images/issues/10215)
+      - name: fix GEM_HOME perms
+        shell: bash
+        run: "chmod -R o-w $(gem env home)"
       - name: bundle
         run: bundle install --jobs 4 --retry 3
         env:
