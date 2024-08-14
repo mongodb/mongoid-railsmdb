@@ -7,8 +7,10 @@
 require 'railsmdb/helpers'
 extend Railsmdb::Helpers
 
-gem 'mongoid', Mongoid::VERSION, comment: 'Use MongoDB for the database, with Mongoid as the ODM'
-gem 'railsmdb', Railsmdb::Version::STRING, comment: 'The Rails CLI tool for Mongoid'
+source_paths.unshift File.join(__dir__, 'generators', 'setup', 'templates')
+
+mongoid_gem
+railsmdb_gem
 
 # Even with activerecord skipped, we still want the db folder emitted.
 build(:db)

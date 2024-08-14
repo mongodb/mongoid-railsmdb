@@ -57,6 +57,22 @@ module Railsmdb
     preload_models: true
     CONFIG
 
+    # Declare the mongoid gem as a dependency.
+    def mongoid_gem
+      gem 'mongoid', Mongoid::VERSION, comment: 'Use MongoDB for the database, with Mongoid as the ODM'
+    end
+
+    # Declare the railsmdb gem as a dependency.
+    def railsmdb_gem
+      # mostly for testing; lets us specify the path to the railsmdb instance
+      # that is under test.
+      if ENV['RAILSMDB_PATH']
+        gem 'railsmdb', path: ENV['RAILSMDB_PATH'], comment: 'The Rails CLI tool for Mongoid'
+      else
+        gem 'railsmdb', Railsmdb::Version::STRING, comment: 'The Rails CLI tool for Mongoid'
+      end
+    end
+
     # Check the CLI options, and possibly prompt the user, to see whether
     # encryption support is desired, and whether they agree to the customer
     # agreement.

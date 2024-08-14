@@ -11,8 +11,6 @@ module Mongoid
         extend ActiveSupport::Concern
 
         included do
-          source_paths.unshift File.expand_path(File.join(__dir__, '..', 'setup/templates'))
-
           # change the --template option to default to our mongoid application
           # template.
           class_option :template, type: :string,

@@ -12,7 +12,7 @@ module Mongoid
 
       desc 'dbconsole', 'Start a console for MongoDB using the info in config/mongoid.yml'
       def perform
-        if defined? require_application_and_environment!
+        if respond_to?(:require_application_and_environment!)
           require_application_and_environment!
         else
           boot_application!

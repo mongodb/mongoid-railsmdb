@@ -120,6 +120,8 @@ RSpec.configure do
     command = normalize_command(command)
     command = build_cmd_from_list(command, args)
 
+    env = env.merge('RAILSMDB_PATH' => PROJECT_ROOT)
+
     context "when running `#{abbreviate_command(command)}`" do
       before :context do
         FileUtils.rm_rf RAILSMDB_SANDBOX if clean
