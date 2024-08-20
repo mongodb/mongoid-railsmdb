@@ -34,12 +34,6 @@ module Mongoid
                                     default: false,
                                     desc: 'Add gems and configuration to enable MongoDB encryption features'
 
-          # An option for enabling MongoDB encryption features in the new app.
-          class_option :encryption, type: :boolean,
-                                    aliases: '-E',
-                                    default: false,
-                                    desc: 'Add gems and configuration to enable MongoDB encryption features'
-
           # Add an option for accepting the customer agreement related to
           # MongoDB enterprise, allowing the acceptance prompt to be skipped.
           class_option :accept_customer_agreement, type: :boolean,
