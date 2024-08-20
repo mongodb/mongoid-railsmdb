@@ -6,11 +6,6 @@ module Railsmdb
   # Extensions to the Rails::Command::Behavior module
   module RailsCommandBehaviorExtension
     module ClassMethods # :nodoc:
-      def self.included(mod)
-        mod.alias_method :rails_lookup, :lookup
-        mod.alias_method :lookup, :railsmdb_lookup
-      end
-
       private
 
       # Railsmdb's version of `Command#lookup`, which makes
@@ -19,8 +14,8 @@ module Railsmdb
       #
       # @param [ Array<String> ] namespaces the list of namespaces
       #   to look at
-      def railsmdb_lookup(namespaces)
-        rails_lookup(preempt_rails_namespace(namespaces))
+      def lookup(namespaces)
+        super(preempt_rails_namespace(namespaces))
       end
 
       # If a "rails:" namespace exists in the list,
@@ -50,6 +45,6 @@ module Railsmdb
       end
     end
 
-    ::Rails::Command::Behavior::ClassMethods.include ClassMethods
+    ::Rails::Command::Behavior::ClassMethods.prepend ClassMethods
   end
 end

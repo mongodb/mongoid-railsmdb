@@ -10,6 +10,9 @@ module Rails
 
       # Prepends the railsmdb commands lookup path to the existing rails
       # lookup paths.
+      #
+      # @note This can't be reimplemented in the railsmdb/ext/rails/command/behavior
+      # patch because it is not originally implemented on Rails::Command::Behavior.
       def railsmdb_lookup_paths
         @railsmdb_lookup_paths ||= [ 'railsmdb/commands', *rails_lookup_paths ]
       end

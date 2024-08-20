@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails/generators/base'
-require 'railsmdb/generators/setup/concerns/setuppable'
+require 'railsmdb/helpers'
 
 if ENV['RAILSMDB_SYNC_IO'] == '1'
   $stderr.sync = true
@@ -13,7 +13,20 @@ module Railsmdb
     # The implementation of the setup generator for Railsmdb, for
     # configuring railsmdb to work in an existing Rails application.
     class SetupGenerator < Rails::Generators::Base
-      include Railsmdb::Generators::Setup::Concerns::Setuppable
+      include Railsmdb::Helpers
+
+      source_paths.unshift File.join(__dir__, 'templates')
+
+      # An option for enabling MongoDB encryption features in the app.
+      class_option :encryption, type: :boolean,
+                                aliases: '-E',
+                                default: false,
+                                desc: 'Add gems and configuration to enable MongoDB encryption features'
+
+      # Add an option for accepting the customer agreement related to
+      # MongoDB enterprise, allowing the acceptance prompt to be skipped.
+      class_option :accept_customer_agreement, type: :boolean,
+                                               desc: 'Accept the MongoDB Customer Agreement'
 
       NEED_RAILS_APP_WARNING = <<~WARNING
         The `railsmdb setup` command must be run from the root of an
@@ -50,21 +63,25 @@ module Railsmdb
         warn_about_undo!
       end
 
-      public_task :save_initial_path
-      public_task :confirm_legal_shenanigans
-      public_task :fetch_crypt_shared
-      public_task :add_mongoid_gem_entries
-      public_task :mongoid_yml
-      public_task :add_mongodb_local_master_key_to_credentials
-      public_task :add_encryption_options_to_mongoid_yml
-      public_task :mongoid_initializer
-      public_task :railsmdb
+      public_task :mongoid_gem
+      public_task :railsmdb_gem
 
-      # Make sure the newly required gems are installed automatically.
-      def run_bundle_install
+      public_task :confirm_legal_shenanigans
+      public_task :possibly_support_encryption
+
+      def run_bundle
         say_status :run, 'bundle install'
-        system 'bundle install'
+        cmd = "#{Gem.ruby} #{Gem.bin_path('bundler', 'bundle')} install --quiet"
+
+        require 'bundler'
+        Bundler.with_original_env { system(cmd) }
       end
+
+      public_task :emit_mongoid_yml
+      public_task :add_encryption_options_to_mongoid_yml
+
+      public_task :emit_mongoid_initializer
+      public_task :emit_railsmdb
 
       private
 

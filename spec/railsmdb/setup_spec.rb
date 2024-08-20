@@ -73,26 +73,26 @@ describe 'railsmdb setup' do
           end
         end
       end
+    end
 
-      clean_context 'when accepting the customer agreement' do
-        when_running 'rails', 'new', app_name do
-          it_succeeds
+    clean_context 'when accepting the customer agreement' do
+      when_running 'rails', 'new', app_name do
+        it_succeeds
 
-          within_folder app_name do
-            when_running :railsmdb, 'setup', '-E',
-                         prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "yes\n" } do
-              it_succeeds
+        within_folder app_name do
+          when_running :railsmdb, 'setup', '-E',
+                       prompts: { MONGO_SETUP_CONTINUE_PROMPT => "yes\n", MONGO_CUSTOMER_PROMPT => "yes\n" } do
+            it_succeeds
 
-              it_emits_file 'Gemfile', containing: %w[ ffi libmongocrypt-helper ]
-              it_stores_credentials_for 'mongodb_master_key'
-              it_emits_entry_matching 'vendor/crypt_shared/mongo_crypt_v1.*'
-              it_emits_file 'config/mongoid.yml',
-                            containing: [
-                              '# This client is used to obtain the encryption keys',
-                              /crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1/,
-                              '# Setting it to true is recommended for auto encryption'
-                            ]
-            end
+            it_emits_file 'Gemfile', containing: %w[ ffi libmongocrypt-helper ]
+            it_stores_credentials_for 'mongodb_master_key'
+            it_emits_entry_matching 'vendor/crypt_shared/mongo_crypt_v1.*'
+            it_emits_file 'config/mongoid.yml',
+                          containing: [
+                            '# This client is used to obtain the encryption keys',
+                            /crypt_shared_lib_path: .*'vendor', 'crypt_shared', 'mongo_crypt_v1/,
+                            '# Setting it to true is recommended for auto encryption'
+                          ]
           end
         end
       end
